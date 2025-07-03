@@ -4,6 +4,9 @@ import { LoginPage } from '@/components/LoginPage';
 import { Dashboard } from '@/components/Dashboard';
 import { SalesManagement } from '@/components/SalesManagement';
 import { ExpenseTracking } from '@/components/ExpenseTracking';
+import { LossesManagement } from '@/components/LossesManagement';
+import { AssetPortfolio } from '@/components/AssetPortfolio';
+import { FinancialReports } from '@/components/FinancialReports';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -58,26 +61,11 @@ const Index = () => {
       case 'expenses':
         return <ExpenseTracking />;
       case 'losses':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-display font-bold mb-4">Loss Management</h2>
-            <p className="text-muted-foreground">Connect Supabase to manage losses</p>
-          </div>
-        );
+        return <LossesManagement />;
       case 'assets':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-display font-bold mb-4">Asset Portfolio</h2>
-            <p className="text-muted-foreground">Connect Supabase to manage assets</p>
-          </div>
-        );
+        return <AssetPortfolio />;
       case 'reports':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-display font-bold mb-4">Financial Reports</h2>
-            <p className="text-muted-foreground">Connect Supabase to generate reports</p>
-          </div>
-        );
+        return <FinancialReports />;
       case 'settings':
         return (
           <div className="text-center py-12">
