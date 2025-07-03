@@ -42,7 +42,7 @@ export function Layout({ children, activeTab, onTabChange, onLogout }: LayoutPro
                 <h1 className="font-display font-semibold text-lg text-foreground">
                   Sayyida Fashion
                 </h1>
-                <p className="text-xs text-muted-foreground">Financial Tracking</p>
+                <p className="text-xs text-muted-foreground">Pelacakan Keuangan</p>
               </div>
             </div>
             
@@ -60,11 +60,11 @@ export function Layout({ children, activeTab, onTabChange, onLogout }: LayoutPro
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuItem onClick={() => onTabChange('settings')}>
                   <Settings className="mr-2 h-4 w-4" />
-                  Settings
+                  Pengaturan
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  Log out
+                  Keluar
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -89,42 +89,42 @@ export function Layout({ children, activeTab, onTabChange, onLogout }: LayoutPro
                 className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <ShoppingBag className="h-4 w-4" />
-                <span className="hidden sm:inline">Sales</span>
+                <span className="hidden sm:inline">Penjualan</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="expenses"
                 className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <CreditCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Expenses</span>
+                <span className="hidden sm:inline">Pengeluaran</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="losses"
                 className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <TrendingDown className="h-4 w-4" />
-                <span className="hidden sm:inline">Losses</span>
+                <span className="hidden sm:inline">Kerugian</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="assets"
                 className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <PiggyBank className="h-4 w-4" />
-                <span className="hidden sm:inline">Assets</span>
+                <span className="hidden sm:inline">Aset</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="reports"
                 className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Reports</span>
+                <span className="hidden sm:inline">Laporan</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="settings"
                 className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Settings</span>
+                <span className="hidden sm:inline">Pengaturan</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>

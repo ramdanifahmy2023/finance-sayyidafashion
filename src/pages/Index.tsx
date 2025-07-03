@@ -28,10 +28,10 @@ const Index = () => {
         throw error;
       }
 
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in to Sayyida Fashion dashboard.",
-      });
+        toast({
+          title: "Selamat datang kembali!",
+          description: "Berhasil masuk ke dashboard Sayyida Fashion.",
+        });
     } catch (err: any) {
       setAuthError(err.message || 'Login failed');
     } finally {
@@ -44,8 +44,8 @@ const Index = () => {
       await signOut();
       setActiveTab('dashboard');
       toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
+        title: "Berhasil keluar",
+        description: "Anda telah berhasil keluar dari sistem.",
       });
     } catch (error) {
       console.error('Error signing out:', error);

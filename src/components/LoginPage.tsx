@@ -39,7 +39,7 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
             Sayyida Fashion
           </h1>
           <p className="text-muted-foreground">
-            Financial Tracking Dashboard
+            Dashboard Pelacakan Keuangan
           </p>
         </div>
 
@@ -47,24 +47,24 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
         <div className="grid grid-cols-3 gap-3 mb-8">
           <div className="text-center p-3 bg-card rounded-lg border border-border shadow-soft">
             <TrendingUp className="h-6 w-6 text-success mx-auto mb-2" />
-            <p className="text-xs text-muted-foreground">Sales Analytics</p>
+            <p className="text-xs text-muted-foreground">Analisis Penjualan</p>
           </div>
           <div className="text-center p-3 bg-card rounded-lg border border-border shadow-soft">
             <Sparkles className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-xs text-muted-foreground">AI Insights</p>
+            <p className="text-xs text-muted-foreground">Wawasan AI</p>
           </div>
           <div className="text-center p-3 bg-card rounded-lg border border-border shadow-soft">
             <ShoppingBag className="h-6 w-6 text-secondary mx-auto mb-2" />
-            <p className="text-xs text-muted-foreground">Inventory Track</p>
+            <p className="text-xs text-muted-foreground">Lacak Inventori</p>
           </div>
         </div>
 
         {/* Login Form */}
         <Card className="bg-card-elevated border-border shadow-medium">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-display">Welcome back</CardTitle>
+            <CardTitle className="text-2xl font-display">Selamat Datang Kembali</CardTitle>
             <CardDescription>
-              Enter your credentials to access your dashboard
+              Masukkan kredensial Anda untuk mengakses dashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -74,7 +74,7 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Masukkan email Anda"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -83,12 +83,12 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Kata Sandi</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
+                    placeholder="Masukkan kata sandi Anda"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -124,16 +124,16 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
                 variant="gradient"
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? 'Masuk...' : 'Masuk'}
               </Button>
             </form>
 
             {/* Demo Credentials */}
             <div className="mt-6 p-4 bg-accent-rose rounded-lg border border-accent-rose/50">
-              <p className="text-sm font-medium text-foreground mb-2">Demo Credentials:</p>
+              <p className="text-sm font-medium text-foreground mb-2">Kredensial Demo:</p>
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>Email: demo@sayyida.com</p>
-                <p>Password: demo123</p>
+                <p>Kata Sandi: demo123</p>
               </div>
               <Button 
                 variant="soft" 
@@ -141,7 +141,7 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
                 className="mt-2 w-full"
                 onClick={fillDemo}
               >
-                Use Demo Credentials
+                Gunakan Kredensial Demo
               </Button>
             </div>
           </CardContent>
@@ -149,7 +149,7 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Built with ❤️ for modern fashion businesses
+          Dibuat dengan ❤️ untuk bisnis fashion modern
         </p>
       </div>
     </div>

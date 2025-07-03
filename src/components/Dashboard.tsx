@@ -84,16 +84,16 @@ export function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-display font-bold text-foreground">Dashboard</h2>
-          <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+          <p className="text-muted-foreground">Selamat datang kembali! Ini ringkasan bisnis Anda.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <PieChart className="h-4 w-4 mr-2" />
-            Export PDF
+            Ekspor PDF
           </Button>
           <Button variant="gradient" size="sm">
             <Sparkles className="h-4 w-4 mr-2" />
-            AI Insights
+            Wawasan AI
           </Button>
         </div>
       </div>
@@ -103,7 +103,7 @@ export function Dashboard() {
         {/* Total Revenue */}
         <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pendapatan</CardTitle>
             <DollarSign className="h-4 w-4 text-revenue" />
           </CardHeader>
           <CardContent>
@@ -115,19 +115,19 @@ export function Dashboard() {
         {/* Total Capital */}
         <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Capital</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Modal</CardTitle>
             <ShoppingCart className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold text-foreground">{formatCurrency(data.totalCapital)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Purchase costs</p>
+            <p className="text-xs text-muted-foreground mt-1">Biaya pembelian</p>
           </CardContent>
         </Card>
 
         {/* Total Expenses */}
         <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pengeluaran</CardTitle>
             <CreditCard className="h-4 w-4 text-expense" />
           </CardHeader>
           <CardContent>
@@ -139,19 +139,19 @@ export function Dashboard() {
         {/* Total Losses */}
         <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Losses</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Kerugian</CardTitle>
             <TrendingDown className="h-4 w-4 text-loss" />
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold text-foreground">{formatCurrency(data.totalLosses)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Minimize losses</p>
+            <p className="text-xs text-muted-foreground mt-1">Minimalkan kerugian</p>
           </CardContent>
         </Card>
 
         {/* Gross Margin */}
         <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Gross Margin</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Margin Kotor</CardTitle>
             <Target className="h-4 w-4 text-profit" />
           </CardHeader>
           <CardContent>
@@ -165,7 +165,7 @@ export function Dashboard() {
         {/* Net Profit */}
         <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Net Profit</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Laba Bersih</CardTitle>
             <TrendingUp className="h-4 w-4 text-profit" />
           </CardHeader>
           <CardContent>
@@ -182,7 +182,7 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
-              Top Selling Products
+              Produk Terlaris
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -195,7 +195,7 @@ export function Dashboard() {
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.sales} sales</p>
+                      <p className="text-xs text-muted-foreground">{product.sales} penjualan</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -220,29 +220,29 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              AI Financial Insights
+              Wawasan Keuangan AI
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="p-3 bg-success-light rounded-lg border-l-4 border-success">
-                <p className="text-sm font-medium text-success-foreground">Strong Performance</p>
+                <p className="text-sm font-medium text-success-foreground">Performa Kuat</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your gross margin of {grossMarginPercentage}% is excellent for the fashion industry.
+                  Margin kotor Anda sebesar {grossMarginPercentage}% sangat baik untuk industri fashion.
                 </p>
               </div>
               
               <div className="p-3 bg-info-light rounded-lg border-l-4 border-info">
-                <p className="text-sm font-medium text-info-foreground">Optimization Opportunity</p>
+                <p className="text-sm font-medium text-info-foreground">Peluang Optimasi</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Consider increasing inventory for "Rajut" category - it's your best performer.
+                  Pertimbangkan menambah stok kategori "Rajut" - ini produk terbaik Anda.
                 </p>
               </div>
               
               <div className="p-3 bg-warning-light rounded-lg border-l-4 border-warning">
-                <p className="text-sm font-medium text-warning-foreground">Cost Management</p>
+                <p className="text-sm font-medium text-warning-foreground">Manajemen Biaya</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Monitor packaging expenses - they've increased by 8% this month.
+                  Pantau pengeluaran kemasan - meningkat 8% bulan ini.
                 </p>
               </div>
             </div>
@@ -253,7 +253,7 @@ export function Dashboard() {
       {/* Recent Activity Preview */}
       <Card className="bg-gradient-card border-border shadow-soft">
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>Aktivitas Terbaru</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -261,8 +261,8 @@ export function Dashboard() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-success rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium">Sale: Rajut Item</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
+                  <p className="text-sm font-medium">Penjualan: Produk Rajut</p>
+                  <p className="text-xs text-muted-foreground">2 jam lalu</p>
                 </div>
               </div>
               <p className="text-sm font-semibold text-success">+{formatCurrency(125000)}</p>
@@ -272,8 +272,8 @@ export function Dashboard() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-expense rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium">Expense: Packaging</p>
-                  <p className="text-xs text-muted-foreground">4 hours ago</p>
+                  <p className="text-sm font-medium">Pengeluaran: Kemasan</p>
+                  <p className="text-xs text-muted-foreground">4 jam lalu</p>
                 </div>
               </div>
               <p className="text-sm font-semibold text-expense">-{formatCurrency(25000)}</p>
@@ -283,8 +283,8 @@ export function Dashboard() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-success rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium">Sale: Dress Item</p>
-                  <p className="text-xs text-muted-foreground">6 hours ago</p>
+                  <p className="text-sm font-medium">Penjualan: Produk Dress</p>
+                  <p className="text-xs text-muted-foreground">6 jam lalu</p>
                 </div>
               </div>
               <p className="text-sm font-semibold text-success">+{formatCurrency(185000)}</p>
@@ -292,7 +292,7 @@ export function Dashboard() {
           </div>
           
           <Button variant="outline" className="w-full mt-4">
-            View All Transactions
+            Lihat Semua Transaksi
           </Button>
         </CardContent>
       </Card>

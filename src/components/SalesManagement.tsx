@@ -225,31 +225,31 @@ export function SalesManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">Sales Management</h1>
-          <p className="text-muted-foreground mt-1">Track and manage your fashion sales</p>
+          <h1 className="text-3xl font-display font-bold text-foreground">Manajemen Penjualan</h1>
+          <p className="text-muted-foreground mt-1">Lacak dan kelola penjualan fashion Anda</p>
         </div>
         <Button 
           onClick={() => setShowForm(true)} 
           className="bg-primary hover:bg-primary-dark"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Sale
+          Tambah Penjualan
         </Button>
       </div>
 
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>{editingSale ? 'Edit Sale' : 'Add New Sale'}</CardTitle>
+            <CardTitle>{editingSale ? 'Edit Penjualan' : 'Tambah Penjualan Baru'}</CardTitle>
             <CardDescription>
-              {editingSale ? 'Update sale information' : 'Enter sale details below'}
+              {editingSale ? 'Perbarui informasi penjualan' : 'Masukkan detail penjualan di bawah'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="transaction_date">Transaction Date</Label>
+                  <Label htmlFor="transaction_date">Tanggal Transaksi</Label>
                   <Input
                     id="transaction_date"
                     type="date"
@@ -260,24 +260,24 @@ export function SalesManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="customer_name">Customer Name</Label>
+                  <Label htmlFor="customer_name">Nama Pelanggan</Label>
                   <Input
                     id="customer_name"
                     value={formData.customer_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, customer_name: e.target.value }))}
-                    placeholder="Enter customer name"
+                    placeholder="Masukkan nama pelanggan"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="product_type">Product Type</Label>
+                  <Label htmlFor="product_type">Jenis Produk</Label>
                   <Select 
                     value={formData.product_type} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, product_type: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select product type" />
+                      <SelectValue placeholder="Pilih jenis produk" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
                       {PRODUCT_TYPES.map((type) => (
@@ -290,13 +290,13 @@ export function SalesManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="payment_method">Payment Method</Label>
+                  <Label htmlFor="payment_method">Metode Pembayaran</Label>
                   <Select 
                     value={formData.payment_method} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, payment_method: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select payment method" />
+                      <SelectValue placeholder="Pilih metode pembayaran" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
                       {PAYMENT_METHODS.map((method) => (
@@ -309,7 +309,7 @@ export function SalesManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="purchase_price">Purchase Price (IDR)</Label>
+                  <Label htmlFor="purchase_price">Harga Beli (IDR)</Label>
                   <Input
                     id="purchase_price"
                     type="number"
@@ -323,7 +323,7 @@ export function SalesManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="selling_price">Selling Price (IDR)</Label>
+                  <Label htmlFor="selling_price">Harga Jual (IDR)</Label>
                   <Input
                     id="selling_price"
                     type="number"
@@ -337,7 +337,7 @@ export function SalesManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="marketplace_fee">Marketplace Fee (IDR)</Label>
+                  <Label htmlFor="marketplace_fee">Biaya Marketplace (IDR)</Label>
                   <Input
                     id="marketplace_fee"
                     type="number"
@@ -350,12 +350,12 @@ export function SalesManagement() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="description">Description (Optional)</Label>
+                  <Label htmlFor="description">Deskripsi (Opsional)</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Additional notes..."
+                    placeholder="Catatan tambahan..."
                     rows={3}
                   />
                 </div>
@@ -363,10 +363,10 @@ export function SalesManagement() {
 
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : (editingSale ? 'Update Sale' : 'Add Sale')}
+                  {isSubmitting ? 'Menyimpan...' : (editingSale ? 'Perbarui Penjualan' : 'Tambah Penjualan')}
                 </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
+                  Batal
                 </Button>
               </div>
             </form>
@@ -376,20 +376,20 @@ export function SalesManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Sales History</CardTitle>
-          <CardDescription>All your recorded sales transactions</CardDescription>
+          <CardTitle>Riwayat Penjualan</CardTitle>
+          <CardDescription>Semua transaksi penjualan yang tercatat</CardDescription>
         </CardHeader>
         <CardContent>
           {sales.length === 0 ? (
             <div className="text-center py-8">
               <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No sales recorded yet</p>
+              <p className="text-muted-foreground">Belum ada penjualan yang tercatat</p>
               <Button 
                 onClick={() => setShowForm(true)} 
                 variant="outline" 
                 className="mt-4"
               >
-                Add Your First Sale
+                Tambah Penjualan Pertama
               </Button>
             </div>
           ) : (
@@ -397,15 +397,15 @@ export function SalesManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Purchase Price</TableHead>
-                    <TableHead>Selling Price</TableHead>
-                    <TableHead>Marketplace Fee</TableHead>
-                    <TableHead>Gross Margin</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Pelanggan</TableHead>
+                    <TableHead>Produk</TableHead>
+                    <TableHead>Harga Beli</TableHead>
+                    <TableHead>Harga Jual</TableHead>
+                    <TableHead>Biaya Marketplace</TableHead>
+                    <TableHead>Margin Kotor</TableHead>
+                    <TableHead>Pembayaran</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
