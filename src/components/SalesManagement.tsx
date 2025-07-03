@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Edit, Trash2, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Loader2 } from 'lucide-react';
 
 interface Sale {
   id: string;
@@ -56,31 +56,98 @@ export function SalesManagement() {
     description: ''
   });
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // Data fetching using specified pattern
+  const fetchSales = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*')
+        .order('transaction_date', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching sales:', error);
+      return [];
+    }
+  };
+
+  const loadSales = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchSales();
+      setSales(data || []);
+    } catch (error) {
+      console.error('Error loading sales:', error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat data penjualan",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadSales();
     }
   }, [user]);
 
-  const loadSales = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('sales')
-        .select('*')
-        .order('transaction_date', { ascending: false });
+  // Real-time updates using specified pattern
+  useEffect(() => {
+    if (!user) return;
 
-      if (error) throw error;
-      setSales(data || []);
-    } catch (error) {
-      console.error('Error loading sales:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load sales data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+    const subscription = supabase
+      .channel('sales-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'sales' },
+        (payload) => {
+          console.log('Change received!', payload);
+          // Refresh sales data on any change
+          loadSales();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user]);
+
+  // Form validation function
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.customer_name.trim()) {
+      errors.customer_name = 'Nama pelanggan wajib diisi';
     }
+
+    if (!formData.product_type) {
+      errors.product_type = 'Jenis produk wajib dipilih';
+    }
+
+    if (!formData.payment_method) {
+      errors.payment_method = 'Metode pembayaran wajib dipilih';
+    }
+
+    if (!formData.purchase_price || parseFloat(formData.purchase_price) < 0) {
+      errors.purchase_price = 'Harga beli harus berupa angka positif';
+    }
+
+    if (!formData.selling_price || parseFloat(formData.selling_price) < 0) {
+      errors.selling_price = 'Harga jual harus berupa angka positif';
+    }
+
+    if (formData.marketplace_fee && parseFloat(formData.marketplace_fee) < 0) {
+      errors.marketplace_fee = 'Biaya marketplace tidak boleh negatif';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const resetForm = () => {
@@ -94,6 +161,7 @@ export function SalesManagement() {
       payment_method: '',
       description: ''
     });
+    setFormErrors({});
     setEditingSale(null);
     setShowForm(false);
   };
@@ -101,6 +169,11 @@ export function SalesManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -267,7 +340,11 @@ export function SalesManagement() {
                     onChange={(e) => setFormData(prev => ({ ...prev, customer_name: e.target.value }))}
                     placeholder="Masukkan nama pelanggan"
                     required
+                    className={formErrors.customer_name ? 'border-destructive' : ''}
                   />
+                  {formErrors.customer_name && (
+                    <p className="text-sm text-destructive">{formErrors.customer_name}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -276,7 +353,7 @@ export function SalesManagement() {
                     value={formData.product_type} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, product_type: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={formErrors.product_type ? 'border-destructive' : ''}>
                       <SelectValue placeholder="Pilih jenis produk" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -287,6 +364,9 @@ export function SalesManagement() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.product_type && (
+                    <p className="text-sm text-destructive">{formErrors.product_type}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -295,7 +375,7 @@ export function SalesManagement() {
                     value={formData.payment_method} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, payment_method: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={formErrors.payment_method ? 'border-destructive' : ''}>
                       <SelectValue placeholder="Pilih metode pembayaran" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
@@ -306,6 +386,9 @@ export function SalesManagement() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.payment_method && (
+                    <p className="text-sm text-destructive">{formErrors.payment_method}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -319,7 +402,11 @@ export function SalesManagement() {
                     onChange={(e) => setFormData(prev => ({ ...prev, purchase_price: e.target.value }))}
                     placeholder="0"
                     required
+                    className={formErrors.purchase_price ? 'border-destructive' : ''}
                   />
+                  {formErrors.purchase_price && (
+                    <p className="text-sm text-destructive">{formErrors.purchase_price}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -333,7 +420,11 @@ export function SalesManagement() {
                     onChange={(e) => setFormData(prev => ({ ...prev, selling_price: e.target.value }))}
                     placeholder="0"
                     required
+                    className={formErrors.selling_price ? 'border-destructive' : ''}
                   />
+                  {formErrors.selling_price && (
+                    <p className="text-sm text-destructive">{formErrors.selling_price}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -346,7 +437,11 @@ export function SalesManagement() {
                     value={formData.marketplace_fee}
                     onChange={(e) => setFormData(prev => ({ ...prev, marketplace_fee: e.target.value }))}
                     placeholder="0"
+                    className={formErrors.marketplace_fee ? 'border-destructive' : ''}
                   />
+                  {formErrors.marketplace_fee && (
+                    <p className="text-sm text-destructive">{formErrors.marketplace_fee}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
@@ -363,6 +458,7 @@ export function SalesManagement() {
 
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isSubmitting ? 'Menyimpan...' : (editingSale ? 'Perbarui Penjualan' : 'Tambah Penjualan')}
                 </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
