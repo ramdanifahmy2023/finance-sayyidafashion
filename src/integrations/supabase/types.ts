@@ -152,7 +152,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_dashboard_metrics: {
+        Args: { user_id_param: string; start_date: string; end_date: string }
+        Returns: {
+          total_revenue: number
+          total_capital: number
+          total_expenses: number
+          total_losses: number
+          gross_margin: number
+          net_profit: number
+          transaction_count: number
+          marketplace_fees: number
+        }[]
+      }
+      get_top_products: {
+        Args: {
+          user_id_param: string
+          start_date: string
+          end_date: string
+          limit_count?: number
+        }
+        Returns: {
+          product_name: string
+          sales_count: number
+          total_revenue: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -41,109 +41,73 @@ export function useDashboard() {
       const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-      // Fetch current month data
-      const [currentSalesResult, currentExpensesResult, currentLossesResult] = await Promise.all([
-        supabase
-          .from('sales')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('transaction_date', firstDay.toISOString().split('T')[0])
-          .lte('transaction_date', lastDay.toISOString().split('T')[0]),
-        supabase
-          .from('expenses')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('transaction_date', firstDay.toISOString().split('T')[0])
-          .lte('transaction_date', lastDay.toISOString().split('T')[0]),
-        supabase
-          .from('losses')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('transaction_date', firstDay.toISOString().split('T')[0])
-          .lte('transaction_date', lastDay.toISOString().split('T')[0])
+      // Fetch current month metrics using optimized database function
+      const [currentMetricsResult, prevMetricsResult, topProductsResult] = await Promise.all([
+        supabase.rpc('get_dashboard_metrics', {
+          user_id_param: userId,
+          start_date: firstDay.toISOString().split('T')[0],
+          end_date: lastDay.toISOString().split('T')[0]
+        }),
+        supabase.rpc('get_dashboard_metrics', {
+          user_id_param: userId,
+          start_date: prevMonth.toISOString().split('T')[0],
+          end_date: prevMonthEnd.toISOString().split('T')[0]
+        }),
+        supabase.rpc('get_top_products', {
+          user_id_param: userId,
+          start_date: firstDay.toISOString().split('T')[0],
+          end_date: lastDay.toISOString().split('T')[0],
+          limit_count: 4
+        })
       ]);
 
-      // Fetch previous month data
-      const [prevSalesResult, prevExpensesResult, prevLossesResult] = await Promise.all([
-        supabase
-          .from('sales')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('transaction_date', prevMonth.toISOString().split('T')[0])
-          .lte('transaction_date', prevMonthEnd.toISOString().split('T')[0]),
-        supabase
-          .from('expenses')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('transaction_date', prevMonth.toISOString().split('T')[0])
-          .lte('transaction_date', prevMonthEnd.toISOString().split('T')[0]),
-        supabase
-          .from('losses')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('transaction_date', prevMonth.toISOString().split('T')[0])
-          .lte('transaction_date', prevMonthEnd.toISOString().split('T')[0])
-      ]);
+      if (currentMetricsResult.error) throw currentMetricsResult.error;
+      if (prevMetricsResult.error) throw prevMetricsResult.error;
+      if (topProductsResult.error) throw topProductsResult.error;
 
-      if (currentSalesResult.error) throw currentSalesResult.error;
-      if (currentExpensesResult.error) throw currentExpensesResult.error;
-      if (currentLossesResult.error) throw currentLossesResult.error;
+      const currentMetrics = currentMetricsResult.data?.[0] || {
+        total_revenue: 0,
+        total_capital: 0,
+        total_expenses: 0,
+        total_losses: 0,
+        gross_margin: 0,
+        net_profit: 0,
+        transaction_count: 0,
+        marketplace_fees: 0
+      };
 
-      const currentSales = currentSalesResult.data || [];
-      const currentExpenses = currentExpensesResult.data || [];
-      const currentLosses = currentLossesResult.data || [];
-      const prevSales = prevSalesResult.data || [];
-      const prevExpenses = prevExpensesResult.data || [];
-      const prevLosses = prevLossesResult.data || [];
+      const prevMetrics = prevMetricsResult.data?.[0] || {
+        total_revenue: 0,
+        total_expenses: 0,
+        net_profit: 0
+      };
 
-      // Calculate current month metrics
-      const totalRevenue = currentSales.reduce((sum, sale) => sum + Number(sale.selling_price), 0);
-      const totalCapital = currentSales.reduce((sum, sale) => sum + Number(sale.purchase_price), 0);
-      const totalExpenses = currentExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-      const totalLosses = currentLosses.reduce((sum, loss) => sum + Number(loss.amount), 0);
-      const marketplaceFees = currentSales.reduce((sum, sale) => sum + Number(sale.marketplace_fee || 0), 0);
-      const grossMargin = totalRevenue - totalCapital - marketplaceFees;
-      const netProfit = grossMargin - totalExpenses - totalLosses;
-
-      // Calculate previous month metrics
-      const prevRevenue = prevSales.reduce((sum, sale) => sum + Number(sale.selling_price), 0);
-      const prevExpensesTotal = prevExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-      const prevLossesTotal = prevLosses.reduce((sum, loss) => sum + Number(loss.amount), 0);
-      const prevCapital = prevSales.reduce((sum, sale) => sum + Number(sale.purchase_price), 0);
-      const prevMarketplaceFees = prevSales.reduce((sum, sale) => sum + Number(sale.marketplace_fee || 0), 0);
-      const prevGrossMargin = prevRevenue - prevCapital - prevMarketplaceFees;
-      const prevNetProfit = prevGrossMargin - prevExpensesTotal - prevLossesTotal;
+      const topProducts = (topProductsResult.data || []).map((product: any) => ({
+        name: product.product_name,
+        sales: product.sales_count,
+        revenue: Number(product.total_revenue)
+      }));
 
       // Calculate growth percentages
-      const revenueGrowth = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : 0;
-      const expenseGrowth = prevExpensesTotal > 0 ? ((totalExpenses - prevExpensesTotal) / prevExpensesTotal) * 100 : 0;
-      const profitGrowth = prevNetProfit > 0 ? ((netProfit - prevNetProfit) / prevNetProfit) * 100 : 0;
-
-      // Calculate top products
-      const productSales = currentSales.reduce((acc, sale) => {
-        const productType = sale.product_type;
-        if (!acc[productType]) {
-          acc[productType] = { sales: 0, revenue: 0 };
-        }
-        acc[productType].sales += 1;
-        acc[productType].revenue += Number(sale.selling_price);
-        return acc;
-      }, {} as Record<string, { sales: number; revenue: number }>);
-
-      const topProducts = Object.entries(productSales)
-        .map(([name, data]) => ({ name, ...data }))
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 4);
+      const revenueGrowth = prevMetrics.total_revenue > 0 
+        ? ((Number(currentMetrics.total_revenue) - Number(prevMetrics.total_revenue)) / Number(prevMetrics.total_revenue)) * 100 
+        : 0;
+      const expenseGrowth = prevMetrics.total_expenses > 0 
+        ? ((Number(currentMetrics.total_expenses) - Number(prevMetrics.total_expenses)) / Number(prevMetrics.total_expenses)) * 100 
+        : 0;
+      const profitGrowth = prevMetrics.net_profit > 0 
+        ? ((Number(currentMetrics.net_profit) - Number(prevMetrics.net_profit)) / Number(prevMetrics.net_profit)) * 100 
+        : 0;
 
       return {
-        totalRevenue,
-        totalCapital,
-        totalExpenses,
-        totalLosses,
-        grossMargin,
-        netProfit,
-        totalTransactions: currentSales.length,
-        marketplaceFees,
+        totalRevenue: Number(currentMetrics.total_revenue),
+        totalCapital: Number(currentMetrics.total_capital),
+        totalExpenses: Number(currentMetrics.total_expenses),
+        totalLosses: Number(currentMetrics.total_losses),
+        grossMargin: Number(currentMetrics.gross_margin),
+        netProfit: Number(currentMetrics.net_profit),
+        totalTransactions: Number(currentMetrics.transaction_count),
+        marketplaceFees: Number(currentMetrics.marketplace_fees),
         monthlyGrowth: {
           revenue: revenueGrowth,
           expenses: expenseGrowth,
