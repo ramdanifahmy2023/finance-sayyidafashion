@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/components/LoginPage';
 import { Dashboard } from '@/components/Dashboard';
+import { SalesManagement } from '@/components/SalesManagement';
+import { ExpenseTracking } from '@/components/ExpenseTracking';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -52,19 +54,9 @@ const Index = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'sales':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-display font-bold mb-4">Sales Management</h2>
-            <p className="text-muted-foreground">Connect Supabase to manage sales data</p>
-          </div>
-        );
+        return <SalesManagement />;
       case 'expenses':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-display font-bold mb-4">Expense Tracking</h2>
-            <p className="text-muted-foreground">Connect Supabase to track expenses</p>
-          </div>
-        );
+        return <ExpenseTracking />;
       case 'losses':
         return (
           <div className="text-center py-12">
