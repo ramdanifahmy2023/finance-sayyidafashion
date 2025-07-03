@@ -3,43 +3,48 @@ import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/components/LoginPage';
 import { Dashboard } from '@/components/Dashboard';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user, loading, signIn, signOut } = useAuth();
 
   const handleLogin = async (email: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
+    setAuthLoading(true);
+    setAuthError(null);
 
     try {
-      // Mock authentication - replace with Supabase auth when connected
-      if (email === 'demo@sayyida.com' && password === 'demo123') {
-        setIsAuthenticated(true);
-        toast({
-          title: "Welcome back!",
-          description: "Successfully signed in to Sayyida Fashion dashboard.",
-        });
-      } else {
-        throw new Error('Invalid credentials');
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        throw error;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+
+      toast({
+        title: "Welcome back!",
+        description: "Successfully signed in to Sayyida Fashion dashboard.",
+      });
+    } catch (err: any) {
+      setAuthError(err.message || 'Login failed');
     } finally {
-      setIsLoading(false);
+      setAuthLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setActiveTab('dashboard');
-    toast({
-      title: "Signed out",
-      description: "You have been successfully signed out.",
-    });
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setActiveTab('dashboard');
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const renderTabContent = () => {
@@ -93,12 +98,20 @@ const Index = () => {
     }
   };
 
-  if (!isAuthenticated) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-surface flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return (
       <LoginPage 
         onLogin={handleLogin}
-        isLoading={isLoading}
-        error={error}
+        isLoading={authLoading}
+        error={authError}
       />
     );
   }

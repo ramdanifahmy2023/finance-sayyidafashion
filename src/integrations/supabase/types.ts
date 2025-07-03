@@ -9,7 +9,144 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assets: {
+        Row: {
+          category: string
+          created_at: string | null
+          current_value: number
+          id: string
+          initial_price: number
+          name: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          current_value: number
+          id?: string
+          initial_price: number
+          name: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          current_value?: number
+          id?: string
+          initial_price?: number
+          name?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          transaction_date: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          transaction_date: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          transaction_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      losses: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string
+          id: string
+          loss_type: string
+          transaction_date: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description: string
+          id?: string
+          loss_type: string
+          transaction_date: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string
+          id?: string
+          loss_type?: string
+          transaction_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          created_at: string | null
+          customer_name: string
+          description: string | null
+          gross_margin: number | null
+          id: string
+          marketplace_fee: number | null
+          payment_method: string
+          product_type: string
+          purchase_price: number
+          selling_price: number
+          transaction_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          customer_name: string
+          description?: string | null
+          gross_margin?: number | null
+          id?: string
+          marketplace_fee?: number | null
+          payment_method: string
+          product_type: string
+          purchase_price: number
+          selling_price: number
+          transaction_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          customer_name?: string
+          description?: string | null
+          gross_margin?: number | null
+          id?: string
+          marketplace_fee?: number | null
+          payment_method?: string
+          product_type?: string
+          purchase_price?: number
+          selling_price?: number
+          transaction_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
