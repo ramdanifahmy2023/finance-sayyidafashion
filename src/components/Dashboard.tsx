@@ -14,50 +14,11 @@ import {
   ArrowDown,
   Sparkles
 } from 'lucide-react';
-
-interface DashboardData {
-  totalRevenue: number;
-  totalCapital: number;
-  totalExpenses: number;
-  totalLosses: number;
-  grossMargin: number;
-  netProfit: number;
-  monthlyGrowth: {
-    revenue: number;
-    expenses: number;
-    profit: number;
-  };
-  topProducts: Array<{
-    name: string;
-    sales: number;
-    revenue: number;
-  }>;
-}
-
-// Mock data - replace with real data when Supabase is connected
-const mockData: DashboardData = {
-  totalRevenue: 15750000,
-  totalCapital: 8500000,
-  totalExpenses: 2250000,
-  totalLosses: 450000,
-  grossMargin: 7200000,
-  netProfit: 4550000,
-  monthlyGrowth: {
-    revenue: 12.5,
-    expenses: -5.2,
-    profit: 18.7
-  },
-  topProducts: [
-    { name: 'Rajut', sales: 45, revenue: 3200000 },
-    { name: 'Dress', sales: 32, revenue: 2800000 },
-    { name: 'Jeans', sales: 28, revenue: 2100000 },
-    { name: 'Hoodie', sales: 22, revenue: 1900000 },
-  ]
-};
+import { useDashboard } from '@/hooks/useDashboard';
+import { formatProductType } from '@/utils/salesFormatters';
 
 export function Dashboard() {
-  const data = mockData;
-  const grossMarginPercentage = ((data.grossMargin / data.totalRevenue) * 100).toFixed(1);
+  const { metrics, loading } = useDashboard();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -73,10 +34,31 @@ export function Dashboard() {
     return (
       <div className={`flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
         {isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-        <span className="text-xs font-medium">{Math.abs(percentage)}%</span>
+        <span className="text-xs font-medium">{Math.abs(percentage).toFixed(1)}%</span>
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!metrics) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-display font-bold mb-4">Dashboard</h2>
+        <p className="text-muted-foreground">Tidak ada data tersedia. Tambahkan transaksi untuk melihat statistik.</p>
+      </div>
+    );
+  }
+
+  const grossMarginPercentage = metrics.totalRevenue > 0 
+    ? ((metrics.grossMargin / metrics.totalRevenue) * 100).toFixed(1) 
+    : '0.0';
 
   return (
     <div className="space-y-6">
@@ -107,8 +89,8 @@ export function Dashboard() {
             <DollarSign className="h-4 w-4 text-revenue" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-foreground">{formatCurrency(data.totalRevenue)}</div>
-            {formatGrowth(data.monthlyGrowth.revenue)}
+            <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalRevenue)}</div>
+            {formatGrowth(metrics.monthlyGrowth.revenue)}
           </CardContent>
         </Card>
 
@@ -119,7 +101,7 @@ export function Dashboard() {
             <ShoppingCart className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-foreground">{formatCurrency(data.totalCapital)}</div>
+            <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalCapital)}</div>
             <p className="text-xs text-muted-foreground mt-1">Biaya pembelian</p>
           </CardContent>
         </Card>
@@ -131,8 +113,8 @@ export function Dashboard() {
             <CreditCard className="h-4 w-4 text-expense" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-foreground">{formatCurrency(data.totalExpenses)}</div>
-            {formatGrowth(data.monthlyGrowth.expenses)}
+            <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalExpenses)}</div>
+            {formatGrowth(metrics.monthlyGrowth.expenses)}
           </CardContent>
         </Card>
 
@@ -143,7 +125,7 @@ export function Dashboard() {
             <TrendingDown className="h-4 w-4 text-loss" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-foreground">{formatCurrency(data.totalLosses)}</div>
+            <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalLosses)}</div>
             <p className="text-xs text-muted-foreground mt-1">Minimalkan kerugian</p>
           </CardContent>
         </Card>
@@ -155,7 +137,7 @@ export function Dashboard() {
             <Target className="h-4 w-4 text-profit" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-foreground">{formatCurrency(data.grossMargin)}</div>
+            <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.grossMargin)}</div>
             <Badge variant="secondary" className="text-xs bg-success-light text-success-foreground">
               {grossMarginPercentage}%
             </Badge>
@@ -169,8 +151,8 @@ export function Dashboard() {
             <TrendingUp className="h-4 w-4 text-profit" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-profit">{formatCurrency(data.netProfit)}</div>
-            {formatGrowth(data.monthlyGrowth.profit)}
+            <div className="text-xl font-bold text-profit">{formatCurrency(metrics.netProfit)}</div>
+            {formatGrowth(metrics.monthlyGrowth.profit)}
           </CardContent>
         </Card>
       </div>
@@ -187,30 +169,36 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data.topProducts.map((product, index) => (
-                <div key={product.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-white text-xs font-bold">
-                      {index + 1}
+              {metrics.topProducts.length > 0 ? (
+                metrics.topProducts.map((product, index) => (
+                  <div key={product.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{formatProductType(product.name)}</p>
+                        <p className="text-xs text-muted-foreground">{product.sales} penjualan</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.sales} penjualan</p>
+                    <div className="text-right">
+                      <p className="font-semibold text-foreground">{formatCurrency(product.revenue)}</p>
+                      <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-primary rounded-full"
+                          style={{ 
+                            width: `${metrics.topProducts[0] ? (product.revenue / metrics.topProducts[0].revenue) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-foreground">{formatCurrency(product.revenue)}</p>
-                    <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-primary rounded-full"
-                        style={{ 
-                          width: `${(product.revenue / data.topProducts[0].revenue) * 100}%` 
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground py-4">
+                  Belum ada penjualan bulan ini
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
