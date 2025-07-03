@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -284,19 +285,13 @@ export function ExpenseTracking() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (IDR)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.amount}
-                    onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0"
-                    required
-                  />
-                </div>
+                <CurrencyInput
+                  label="Jumlah (IDR)"
+                  value={formData.amount}
+                  onChange={(value) => setFormData(prev => ({ ...prev, amount: value }))}
+                  placeholder="25.000"
+                  required
+                />
 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="description">Description (Optional)</Label>
