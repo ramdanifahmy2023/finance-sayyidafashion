@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,7 +13,7 @@ export function useSales() {
   const { selectedDate, getMonthRange } = useDateFilter();
 
   // Data fetching with date filter
-  const fetchSales = async () => {
+  const fetchSales = useCallback(async () => {
     try {
       const range = getMonthRange(selectedDate);
       const { data, error } = await supabase
@@ -29,9 +29,9 @@ export function useSales() {
       console.error('Error fetching sales:', error);
       return [];
     }
-  };
+  }, [selectedDate.getFullYear(), selectedDate.getMonth(), getMonthRange]);
 
-  const loadSales = async () => {
+  const loadSales = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchSales();
@@ -46,7 +46,7 @@ export function useSales() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchSales, toast]);
 
   const deleteSale = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus penjualan ini?')) return;
@@ -75,11 +75,14 @@ export function useSales() {
     }
   };
 
+  // Create stable date key to prevent unnecessary re-renders
+  const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
+  
   useEffect(() => {
     if (user) {
       loadSales();
     }
-  }, [user, selectedDate]);
+  }, [user, dateKey, loadSales]);
 
   // Real-time updates using specified pattern
   useEffect(() => {

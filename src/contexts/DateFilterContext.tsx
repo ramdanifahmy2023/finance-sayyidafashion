@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
 
 interface DateRange {
   startDate: string;
@@ -45,7 +45,7 @@ export const DateFilterProvider = ({ children }: DateFilterProviderProps) => {
     const now = new Date();
     return selectedDate.getFullYear() === now.getFullYear() && 
            selectedDate.getMonth() === now.getMonth();
-  }, [selectedDate]);
+  }, [selectedDate.getFullYear(), selectedDate.getMonth()]);
 
   const formatDisplayMonth = useCallback((date: Date) => {
     const monthNames = [
@@ -55,14 +55,14 @@ export const DateFilterProvider = ({ children }: DateFilterProviderProps) => {
     return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     selectedDate,
     setSelectedDate,
     getMonthRange,
     getPreviousMonthRange,
     isCurrentMonth,
     formatDisplayMonth
-  };
+  }), [selectedDate, setSelectedDate, getMonthRange, getPreviousMonthRange, isCurrentMonth, formatDisplayMonth]);
 
   return (
     <DateFilterContext.Provider value={value}>

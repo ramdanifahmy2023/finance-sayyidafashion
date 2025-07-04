@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +30,7 @@ export function useDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchDashboardMetrics = async (userId: string, selectedDate?: Date) => {
+  const fetchDashboardMetrics = useCallback(async (userId: string, selectedDate?: Date) => {
     try {
       // Use selected date or current month
       const targetDate = selectedDate || new Date();
@@ -120,9 +120,9 @@ export function useDashboard() {
       console.error('Error fetching dashboard metrics:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const loadDashboard = async (selectedDate?: Date) => {
+  const loadDashboard = useCallback(async (selectedDate?: Date) => {
     if (!user) return;
 
     setLoading(true);
@@ -139,7 +139,7 @@ export function useDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, fetchDashboardMetrics, toast]);
 
   useEffect(() => {
     if (user) {

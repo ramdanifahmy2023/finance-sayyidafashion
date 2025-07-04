@@ -13,10 +13,13 @@ export function Dashboard() {
   const { metrics, loading, loadDashboard } = useDashboard();
   const { selectedDate, formatDisplayMonth, isCurrentMonth } = useDateFilter();
 
+  // Create stable date key to prevent unnecessary re-renders
+  const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
+
   // Reload dashboard when date changes
   useEffect(() => {
     loadDashboard(selectedDate);
-  }, [selectedDate, loadDashboard]);
+  }, [dateKey, loadDashboard]);
 
   if (loading) {
     return (
