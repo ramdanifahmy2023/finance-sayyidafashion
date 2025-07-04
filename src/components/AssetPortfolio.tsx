@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { CurrencyInput } from '@/components/ui/currency-input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Edit, Trash2, TrendingUp, Wallet, CreditCard } from 'lucide-react';
@@ -337,20 +336,30 @@ export function AssetPortfolio() {
                   />
                 </div>
 
-                <CurrencyInput
-                  label="Nilai Saat Ini (IDR)"
-                  value={formData.current_value}
-                  onChange={(value) => setFormData(prev => ({ ...prev, current_value: value }))}
-                  placeholder="100.000"
-                  required
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="current_value">Current Value (IDR)</Label>
+                  <Input
+                    id="current_value"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.current_value}
+                    onChange={(e) => setFormData(prev => ({ ...prev, current_value: e.target.value }))}
+                    placeholder="0"
+                    required
+                  />
+                </div>
 
-                <div className="md:col-span-2">
-                  <CurrencyInput
-                    label="Harga Beli Awal (IDR)"
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="initial_price">Initial Purchase Price (IDR)</Label>
+                  <Input
+                    id="initial_price"
+                    type="number"
+                    min="0"
+                    step="0.01"
                     value={formData.initial_price}
-                    onChange={(value) => setFormData(prev => ({ ...prev, initial_price: value }))}
-                    placeholder="80.000"
+                    onChange={(e) => setFormData(prev => ({ ...prev, initial_price: e.target.value }))}
+                    placeholder="0"
                     required
                   />
                 </div>

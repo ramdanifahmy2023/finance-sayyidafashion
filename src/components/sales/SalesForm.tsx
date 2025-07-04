@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CurrencyInput } from '@/components/ui/currency-input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -211,40 +210,58 @@ export function SalesForm({ editingSale, onSuccess, onCancel }: SalesFormProps) 
               )}
             </div>
 
-            <CurrencyInput
-              label="Harga Beli (IDR)"
-              value={formData.purchase_price}
-              onChange={(value) => setFormData(prev => ({ ...prev, purchase_price: value }))}
-              placeholder="25.000"
-              required
-              className={formErrors.purchase_price ? 'border-destructive' : ''}
-            />
-            {formErrors.purchase_price && (
-              <p className="text-sm text-destructive">{formErrors.purchase_price}</p>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="purchase_price">Harga Beli (IDR)</Label>
+              <Input
+                id="purchase_price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.purchase_price}
+                onChange={(e) => setFormData(prev => ({ ...prev, purchase_price: e.target.value }))}
+                placeholder="0"
+                required
+                className={formErrors.purchase_price ? 'border-destructive' : ''}
+              />
+              {formErrors.purchase_price && (
+                <p className="text-sm text-destructive">{formErrors.purchase_price}</p>
+              )}
+            </div>
 
-            <CurrencyInput
-              label="Harga Jual (IDR)"
-              value={formData.selling_price}
-              onChange={(value) => setFormData(prev => ({ ...prev, selling_price: value }))}
-              placeholder="50.000"
-              required
-              className={formErrors.selling_price ? 'border-destructive' : ''}
-            />
-            {formErrors.selling_price && (
-              <p className="text-sm text-destructive">{formErrors.selling_price}</p>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="selling_price">Harga Jual (IDR)</Label>
+              <Input
+                id="selling_price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.selling_price}
+                onChange={(e) => setFormData(prev => ({ ...prev, selling_price: e.target.value }))}
+                placeholder="0"
+                required
+                className={formErrors.selling_price ? 'border-destructive' : ''}
+              />
+              {formErrors.selling_price && (
+                <p className="text-sm text-destructive">{formErrors.selling_price}</p>
+              )}
+            </div>
 
-            <CurrencyInput
-              label="Biaya Marketplace (IDR)"
-              value={formData.marketplace_fee}
-              onChange={(value) => setFormData(prev => ({ ...prev, marketplace_fee: value }))}
-              placeholder="5.000"
-              className={formErrors.marketplace_fee ? 'border-destructive' : ''}
-            />
-            {formErrors.marketplace_fee && (
-              <p className="text-sm text-destructive">{formErrors.marketplace_fee}</p>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="marketplace_fee">Biaya Marketplace (IDR)</Label>
+              <Input
+                id="marketplace_fee"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.marketplace_fee}
+                onChange={(e) => setFormData(prev => ({ ...prev, marketplace_fee: e.target.value }))}
+                placeholder="0"
+                className={formErrors.marketplace_fee ? 'border-destructive' : ''}
+              />
+              {formErrors.marketplace_fee && (
+                <p className="text-sm text-destructive">{formErrors.marketplace_fee}</p>
+              )}
+            </div>
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">Deskripsi (Opsional)</Label>

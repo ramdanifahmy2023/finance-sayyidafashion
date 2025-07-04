@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -46,31 +45,29 @@ export function Layout({ children, activeTab, onTabChange, onLogout }: LayoutPro
                 <p className="text-xs text-muted-foreground">Pelacakan Keuangan</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg" alt="Profile" />
-                      <AvatarFallback className="bg-gradient-primary text-white">
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuItem onClick={() => onTabChange('settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Pengaturan
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Keluar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/placeholder.svg" alt="Profile" />
+                    <AvatarFallback className="bg-gradient-primary text-white">
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuItem onClick={() => onTabChange('settings')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Pengaturan
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Keluar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
