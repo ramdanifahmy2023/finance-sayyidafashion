@@ -15,10 +15,16 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useChartData } from '@/hooks/useChartData';
 import { formatProductType } from '@/utils/salesFormatters';
+import { SalesByCategoryChart } from '@/components/charts/SalesByCategoryChart';
+import { DailySalesChart } from '@/components/charts/DailySalesChart';
+import { MonthlyTrendChart } from '@/components/charts/MonthlyTrendChart';
+import { ExpenseBreakdownChart } from '@/components/charts/ExpenseBreakdownChart';
 
 export function Dashboard() {
   const { metrics, loading } = useDashboard();
+  const { salesByCategory, dailySales, monthlyTrend, expenseBreakdown, loading: chartsLoading } = useChartData();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -157,7 +163,22 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Charts and Analytics Section */}
+      {/* Comprehensive Charts Section */}
+      <div className="space-y-6">
+        {/* Sales Analytics Charts */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <SalesByCategoryChart data={salesByCategory} loading={chartsLoading} />
+          <ExpenseBreakdownChart data={expenseBreakdown} loading={chartsLoading} />
+        </div>
+
+        {/* Performance Trend Charts */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <DailySalesChart data={dailySales} loading={chartsLoading} />
+          <MonthlyTrendChart data={monthlyTrend} loading={chartsLoading} />
+        </div>
+      </div>
+
+      {/* Top Products and AI Insights Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Selling Products */}
         <Card className="bg-gradient-card border-border shadow-soft">
@@ -169,7 +190,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {metrics.topProducts.length > 0 ? (
+              {metrics && metrics.topProducts.length > 0 ? (
                 metrics.topProducts.map((product, index) => (
                   <div key={product.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -223,14 +244,14 @@ export function Dashboard() {
               <div className="p-3 bg-info-light rounded-lg border-l-4 border-info">
                 <p className="text-sm font-medium text-info-foreground">Peluang Optimasi</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pertimbangkan menambah stok kategori "Rajut" - ini produk terbaik Anda.
+                  Pertimbangkan menambah stok kategori dengan penjualan terbaik.
                 </p>
               </div>
               
               <div className="p-3 bg-warning-light rounded-lg border-l-4 border-warning">
                 <p className="text-sm font-medium text-warning-foreground">Manajemen Biaya</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pantau pengeluaran kemasan - meningkat 8% bulan ini.
+                  Monitor pengeluaran operasional untuk meningkatkan profitabilitas.
                 </p>
               </div>
             </div>
