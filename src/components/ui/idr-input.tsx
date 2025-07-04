@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface IDRInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface IDRInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'type' | 'pattern' | 'min' | 'max' | 'step' | 'required'> {
   value?: string | number;
   onChange: (value: string) => void;
   label?: string;
@@ -47,8 +47,16 @@ export function IDRInput({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     
-    // Allow only numbers and handle backspace/delete
-    if (inputValue === '' || /^\d+$/.test(inputValue.replace(/\./g, ''))) {
+    // Allow empty input
+    if (inputValue === '') {
+      setDisplayValue('');
+      setRawValue('');
+      onChange('');
+      return;
+    }
+    
+    // Only allow numbers and dots (formatted numbers)
+    if (/^[\d.]*$/.test(inputValue)) {
       const raw = unformatIDR(inputValue);
       const formatted = formatIDR(raw);
       
@@ -85,12 +93,16 @@ export function IDRInput({
 
   // Update display when value prop changes
   useEffect(() => {
-    if (value !== undefined) {
+    if (value !== undefined && value !== null && value !== '') {
       const valueStr = value.toString();
       setRawValue(valueStr);
       setDisplayValue(formatIDR(valueStr));
+    } else {
+      setDisplayValue('');
+      setRawValue('');
     }
   }, [value]);
+
 
   return (
     <div className="space-y-2">
@@ -104,7 +116,7 @@ export function IDRInput({
         <input
           type="text"
           inputMode="numeric"
-          pattern="[0-9]*"
+          autoComplete="off"
           value={displayValue}
           onChange={handleInputChange}
           onPaste={handlePaste}
