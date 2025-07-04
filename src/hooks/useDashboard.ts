@@ -30,16 +30,16 @@ export function useDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchDashboardMetrics = async (userId: string) => {
+  const fetchDashboardMetrics = async (userId: string, selectedDate?: Date) => {
     try {
-      // Get current month date range
-      const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      // Use selected date or current month
+      const targetDate = selectedDate || new Date();
+      const firstDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+      const lastDay = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
       
       // Get previous month date range
-      const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      const prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, 1);
+      const prevMonthEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
 
       // Fetch current month metrics using optimized database function
       const [currentMetricsResult, prevMetricsResult, topProductsResult] = await Promise.all([
@@ -122,12 +122,12 @@ export function useDashboard() {
     }
   };
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (selectedDate?: Date) => {
     if (!user) return;
 
     setLoading(true);
     try {
-      const dashboardMetrics = await fetchDashboardMetrics(user.id);
+      const dashboardMetrics = await fetchDashboardMetrics(user.id, selectedDate);
       setMetrics(dashboardMetrics);
     } catch (error) {
       console.error('Error loading dashboard:', error);

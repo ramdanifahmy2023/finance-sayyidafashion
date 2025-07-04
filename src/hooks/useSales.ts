@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useDateFilter } from '@/contexts/DateFilterContext';
 import { Sale } from '@/types/sales';
 
 export function useSales() {
@@ -9,13 +10,17 @@ export function useSales() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedDate, getMonthRange } = useDateFilter();
 
-  // Data fetching using specified pattern
+  // Data fetching with date filter
   const fetchSales = async () => {
     try {
+      const range = getMonthRange(selectedDate);
       const { data, error } = await supabase
         .from('sales')
         .select('*')
+        .gte('transaction_date', range.startDate)
+        .lte('transaction_date', range.endDate)
         .order('transaction_date', { ascending: false });
       
       if (error) throw error;
@@ -74,7 +79,7 @@ export function useSales() {
     if (user) {
       loadSales();
     }
-  }, [user]);
+  }, [user, selectedDate]);
 
   // Real-time updates using specified pattern
   useEffect(() => {
