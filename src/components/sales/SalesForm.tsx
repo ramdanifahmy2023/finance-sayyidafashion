@@ -5,12 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { IDRInput } from '@/components/ui/idr-input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { Sale, SaleFormData, PRODUCT_TYPES, PAYMENT_METHODS } from '@/types/sales';
 import { formatProductType, formatPaymentMethod } from '@/utils/salesFormatters';
+import { validateAmount } from '@/utils/currencyFormatter';
 
 interface SalesFormProps {
   editingSale: Sale | null;
@@ -52,16 +54,21 @@ export function SalesForm({ editingSale, onSuccess, onCancel }: SalesFormProps) 
       errors.payment_method = 'Metode pembayaran wajib dipilih';
     }
 
-    if (!formData.purchase_price || parseFloat(formData.purchase_price) < 0) {
-      errors.purchase_price = 'Harga beli harus berupa angka positif';
+    const purchasePriceError = validateAmount(formData.purchase_price, 'Harga beli');
+    if (purchasePriceError) {
+      errors.purchase_price = purchasePriceError;
     }
 
-    if (!formData.selling_price || parseFloat(formData.selling_price) < 0) {
-      errors.selling_price = 'Harga jual harus berupa angka positif';
+    const sellingPriceError = validateAmount(formData.selling_price, 'Harga jual');
+    if (sellingPriceError) {
+      errors.selling_price = sellingPriceError;
     }
 
-    if (formData.marketplace_fee && parseFloat(formData.marketplace_fee) < 0) {
-      errors.marketplace_fee = 'Biaya marketplace tidak boleh negatif';
+    if (formData.marketplace_fee) {
+      const marketplaceFeeError = validateAmount(formData.marketplace_fee, 'Biaya marketplace');
+      if (marketplaceFeeError) {
+        errors.marketplace_fee = marketplaceFeeError;
+      }
     }
 
     setFormErrors(errors);
@@ -210,58 +217,31 @@ export function SalesForm({ editingSale, onSuccess, onCancel }: SalesFormProps) 
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="purchase_price">Harga Beli (IDR)</Label>
-              <Input
-                id="purchase_price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.purchase_price}
-                onChange={(e) => setFormData(prev => ({ ...prev, purchase_price: e.target.value }))}
-                placeholder="0"
-                required
-                className={formErrors.purchase_price ? 'border-destructive' : ''}
-              />
-              {formErrors.purchase_price && (
-                <p className="text-sm text-destructive">{formErrors.purchase_price}</p>
-              )}
-            </div>
+            <IDRInput
+              label="Harga Beli (IDR)"
+              value={formData.purchase_price}
+              onChange={(value) => setFormData(prev => ({ ...prev, purchase_price: value }))}
+              placeholder="Masukkan harga beli"
+              required
+              error={formErrors.purchase_price}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="selling_price">Harga Jual (IDR)</Label>
-              <Input
-                id="selling_price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.selling_price}
-                onChange={(e) => setFormData(prev => ({ ...prev, selling_price: e.target.value }))}
-                placeholder="0"
-                required
-                className={formErrors.selling_price ? 'border-destructive' : ''}
-              />
-              {formErrors.selling_price && (
-                <p className="text-sm text-destructive">{formErrors.selling_price}</p>
-              )}
-            </div>
+            <IDRInput
+              label="Harga Jual (IDR)"
+              value={formData.selling_price}
+              onChange={(value) => setFormData(prev => ({ ...prev, selling_price: value }))}
+              placeholder="Masukkan harga jual"
+              required
+              error={formErrors.selling_price}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="marketplace_fee">Biaya Marketplace (IDR)</Label>
-              <Input
-                id="marketplace_fee"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.marketplace_fee}
-                onChange={(e) => setFormData(prev => ({ ...prev, marketplace_fee: e.target.value }))}
-                placeholder="0"
-                className={formErrors.marketplace_fee ? 'border-destructive' : ''}
-              />
-              {formErrors.marketplace_fee && (
-                <p className="text-sm text-destructive">{formErrors.marketplace_fee}</p>
-              )}
-            </div>
+            <IDRInput
+              label="Biaya Marketplace (IDR)"
+              value={formData.marketplace_fee}
+              onChange={(value) => setFormData(prev => ({ ...prev, marketplace_fee: value }))}
+              placeholder="0"
+              error={formErrors.marketplace_fee}
+            />
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">Deskripsi (Opsional)</Label>

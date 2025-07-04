@@ -4,11 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { IDRInput } from '@/components/ui/idr-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Edit, Trash2, TrendingDown, AlertTriangle } from 'lucide-react';
+import { formatCurrency } from '@/utils/currencyFormatter';
 
 interface Loss {
   id: string;
@@ -246,19 +248,13 @@ export function LossesManagement() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (IDR)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.amount}
-                    onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0"
-                    required
-                  />
-                </div>
+                <IDRInput
+                  label="Nilai Kerugian (IDR)"
+                  value={formData.amount}
+                  onChange={(value) => setFormData(prev => ({ ...prev, amount: value }))}
+                  placeholder="Masukkan nilai kerugian"
+                  required
+                />
 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="description">Description</Label>

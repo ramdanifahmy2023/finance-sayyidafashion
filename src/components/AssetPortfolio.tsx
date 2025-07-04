@@ -4,12 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { IDRInput } from '@/components/ui/idr-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Edit, Trash2, TrendingUp, Wallet, CreditCard } from 'lucide-react';
+import { formatCurrency } from '@/utils/currencyFormatter';
 
 interface Asset {
   id: string;
@@ -336,33 +338,21 @@ export function AssetPortfolio() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="current_value">Current Value (IDR)</Label>
-                  <Input
-                    id="current_value"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.current_value}
-                    onChange={(e) => setFormData(prev => ({ ...prev, current_value: e.target.value }))}
-                    placeholder="0"
-                    required
-                  />
-                </div>
+                <IDRInput
+                  label="Nilai Saat Ini (IDR)"
+                  value={formData.current_value}
+                  onChange={(value) => setFormData(prev => ({ ...prev, current_value: value }))}
+                  placeholder="Masukkan nilai saat ini"
+                  required
+                />
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="initial_price">Initial Purchase Price (IDR)</Label>
-                  <Input
-                    id="initial_price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.initial_price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, initial_price: e.target.value }))}
-                    placeholder="0"
-                    required
-                  />
-                </div>
+                <IDRInput
+                  label="Harga Beli Awal (IDR)"
+                  value={formData.initial_price}
+                  onChange={(value) => setFormData(prev => ({ ...prev, initial_price: value }))}
+                  placeholder="Masukkan harga beli awal"
+                  required
+                />
               </div>
 
               <div className="flex gap-2 pt-4">

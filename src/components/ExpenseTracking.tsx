@@ -5,12 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { IDRInput } from '@/components/ui/idr-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Edit, Trash2, Receipt } from 'lucide-react';
+import { formatCurrency } from '@/utils/currencyFormatter';
 
 interface Expense {
   id: string;
@@ -284,19 +286,13 @@ export function ExpenseTracking() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (IDR)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.amount}
-                    onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0"
-                    required
-                  />
-                </div>
+                <IDRInput
+                  label="Jumlah (IDR)"
+                  value={formData.amount}
+                  onChange={(value) => setFormData(prev => ({ ...prev, amount: value }))}
+                  placeholder="Masukkan jumlah pengeluaran"
+                  required
+                />
 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="description">Description (Optional)</Label>
