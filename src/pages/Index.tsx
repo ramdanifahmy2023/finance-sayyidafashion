@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/components/LoginPage';
@@ -7,6 +8,7 @@ import { ExpenseTracking } from '@/components/ExpenseTracking';
 import { LossesManagement } from '@/components/LossesManagement';
 import { AssetPortfolio } from '@/components/AssetPortfolio';
 import { FinancialReports } from '@/components/FinancialReports';
+import { Settings } from '@/components/Settings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -67,12 +69,7 @@ const Index = () => {
       case 'reports':
         return <FinancialReports />;
       case 'settings':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-display font-bold mb-4">Settings</h2>
-            <p className="text-muted-foreground">Connect Supabase to manage settings</p>
-          </div>
-        );
+        return <Settings />;
       default:
         return <Dashboard />;
     }
