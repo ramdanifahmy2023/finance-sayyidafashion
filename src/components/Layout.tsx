@@ -26,9 +26,7 @@ export function Layout({
                 <span className="text-white font-bold text-sm">SF</span>
               </div>
               <div>
-                <h1 className="font-display font-semibold text-lg text-foreground">
-                  Sayyida Fashion
-                </h1>
+                <h1 className="font-display font-semibold text-lg text-foreground">Finance Sayyida Fashion</h1>
                 <p className="text-xs text-muted-foreground">Web Pencatat Keuangan Perusahaan anda</p>
               </div>
             </div>

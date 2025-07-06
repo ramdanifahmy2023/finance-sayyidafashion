@@ -63,7 +63,7 @@ export function DashboardMetrics({
       {/* Total Revenue */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Total Omset</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-lg">Total Omset</CardTitle>
           <DollarSign className="h-4 w-4 text-revenue" />
         </CardHeader>
         <CardContent>
@@ -75,7 +75,7 @@ export function DashboardMetrics({
       {/* Total Capital */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Total Modal</CardTitle>
+          <CardTitle className="text-muted-foreground font-medium text-lg">Total Modal</CardTitle>
           <ShoppingCart className="h-4 w-4 text-secondary" />
         </CardHeader>
         <CardContent>
@@ -87,7 +87,7 @@ export function DashboardMetrics({
       {/* Total Expenses */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Total Pengeluaran</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-lg">Total Pengeluaran</CardTitle>
           <CreditCard className="h-4 w-4 text-expense" />
         </CardHeader>
         <CardContent>
@@ -99,7 +99,7 @@ export function DashboardMetrics({
       {/* Total Losses */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Total Kerugian</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-lg">Total Kerugian</CardTitle>
           <TrendingDown className="h-4 w-4 text-loss" />
         </CardHeader>
         <CardContent>
@@ -111,7 +111,7 @@ export function DashboardMetrics({
       {/* Gross Margin */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Gross Margin</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-lg">Gross Margin</CardTitle>
           <Target className="h-4 w-4 text-profit" />
         </CardHeader>
         <CardContent>
@@ -125,7 +125,7 @@ export function DashboardMetrics({
       {/* Net Profit */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Laba Bersih</CardTitle>
+          <CardTitle className="text-muted-foreground font-medium text-lg">Laba Bersih</CardTitle>
           <TrendingUp className="h-4 w-4 text-profit" />
         </CardHeader>
         <CardContent>
