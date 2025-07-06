@@ -1,10 +1,42 @@
+
 import { Button } from '@/components/ui/button';
 import { MonthYearSelector } from '@/components/ui/month-year-selector';
 import { useDateFilter } from '@/contexts/DateFilterContext';
-import { PieChart, Sparkles } from 'lucide-react';
+import { useDashboard } from '@/hooks/useDashboard';
+import { exportDashboardToPDF } from '@/utils/pdfExport';
+import { useToast } from '@/hooks/use-toast';
+import { PieChart, Sparkles, FileDown } from 'lucide-react';
 
 export function DashboardHeader() {
   const { selectedDate, setSelectedDate } = useDateFilter();
+  const { metrics, loading } = useDashboard();
+  const { toast } = useToast();
+
+  const handleExportPDF = () => {
+    if (!metrics) {
+      toast({
+        title: "Error",
+        description: "Data dashboard belum tersedia untuk diekspor",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      exportDashboardToPDF(metrics, selectedDate);
+      toast({
+        title: "Berhasil",
+        description: "Dashboard berhasil diekspor ke PDF"
+      });
+    } catch (error) {
+      console.error('Export PDF error:', error);
+      toast({
+        title: "Error",
+        description: "Gagal mengekspor dashboard ke PDF",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -18,8 +50,13 @@ export function DashboardHeader() {
           onDateChange={setSelectedDate}
           className="w-64"
         />
-        <Button variant="outline" size="sm">
-          <PieChart className="h-4 w-4 mr-2" />
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleExportPDF}
+          disabled={loading || !metrics}
+        >
+          <FileDown className="h-4 w-4 mr-2" />
           Ekspor PDF
         </Button>
         <Button variant="gradient" size="sm">
