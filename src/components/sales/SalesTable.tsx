@@ -5,18 +5,20 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Edit, Trash2 } from 'lucide-react';
 import { Sale } from '@/types/sales';
 import { formatCurrency, formatProductType, formatPaymentMethod } from '@/utils/salesFormatters';
-
 interface SalesTableProps {
   sales: Sale[];
   onEdit: (sale: Sale) => void;
   onDelete: (id: string) => void;
   onAddFirst: () => void;
 }
-
-export function SalesTable({ sales, onEdit, onDelete, onAddFirst }: SalesTableProps) {
+export function SalesTable({
+  sales,
+  onEdit,
+  onDelete,
+  onAddFirst
+}: SalesTableProps) {
   if (sales.length === 0) {
-    return (
-      <Card>
+    return <Card>
         <CardHeader>
           <CardTitle>Riwayat Penjualan</CardTitle>
           <CardDescription>Semua transaksi penjualan yang tercatat</CardDescription>
@@ -25,21 +27,14 @@ export function SalesTable({ sales, onEdit, onDelete, onAddFirst }: SalesTablePr
           <div className="text-center py-8">
             <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">Belum ada penjualan yang tercatat</p>
-            <Button 
-              onClick={onAddFirst} 
-              variant="outline" 
-              className="mt-4"
-            >
+            <Button onClick={onAddFirst} variant="outline" className="mt-4">
               Tambah Penjualan Pertama
             </Button>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
         <CardTitle>Riwayat Penjualan</CardTitle>
         <CardDescription>Semua transaksi penjualan yang tercatat</CardDescription>
@@ -61,8 +56,7 @@ export function SalesTable({ sales, onEdit, onDelete, onAddFirst }: SalesTablePr
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sales.map((sale) => (
-                <TableRow key={sale.id}>
+              {sales.map(sale => <TableRow key={sale.id}>
                   <TableCell>{new Date(sale.transaction_date).toLocaleDateString('id-ID')}</TableCell>
                   <TableCell className="font-medium">{sale.customer_name}</TableCell>
                   <TableCell>
@@ -77,32 +71,22 @@ export function SalesTable({ sales, onEdit, onDelete, onAddFirst }: SalesTablePr
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{formatPaymentMethod(sale.payment_method)}</Badge>
+                    <Badge variant="outline" className="bg-pink-600 rounded-none">{formatPaymentMethod(sale.payment_method)}</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onEdit(sale)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => onEdit(sale)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onDelete(sale.id)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => onDelete(sale.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
-              ))}
+                </TableRow>)}
             </TableBody>
           </Table>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
