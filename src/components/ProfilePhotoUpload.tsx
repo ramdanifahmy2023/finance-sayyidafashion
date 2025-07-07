@@ -1,5 +1,4 @@
-
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +28,7 @@ export function ProfilePhotoUpload() {
     loadProfilePhoto();
   }, [user]);
 
-  const loadProfilePhoto = async () => {
+  async function loadProfilePhoto() {
     if (!user) return;
 
     try {
@@ -47,9 +46,9 @@ export function ProfilePhotoUpload() {
     } catch (error) {
       console.error('Error loading profile photo:', error);
     }
-  };
+  }
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -80,9 +79,9 @@ export function ProfilePhotoUpload() {
       setPreviewImage(e.target?.result as string);
     };
     reader.readAsDataURL(file);
-  };
+  }
 
-  const uploadPhoto = async () => {
+  async function uploadPhoto() {
     if (!user || !fileInputRef.current?.files?.[0]) return;
 
     setUploading(true);
@@ -131,9 +130,9 @@ export function ProfilePhotoUpload() {
     } finally {
       setUploading(false);
     }
-  };
+  }
 
-  const removePhoto = async () => {
+  async function removePhoto() {
     if (!user) return;
 
     setUploading(true);
@@ -167,7 +166,7 @@ export function ProfilePhotoUpload() {
     } finally {
       setUploading(false);
     }
-  };
+  }
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
