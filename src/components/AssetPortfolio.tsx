@@ -12,7 +12,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Edit, Trash2, TrendingUp, Wallet, CreditCard } from 'lucide-react';
 import { formatCurrency } from '@/utils/currencyFormatter';
-
 interface Asset {
   id: string;
   type: 'asset' | 'liability';
@@ -21,19 +20,20 @@ interface Asset {
   current_value: number;
   initial_price: number;
 }
-
 const ASSET_CATEGORIES = ['emas', 'kripto', 'kendaraan', 'properti', 'elektronik', 'lainnya'];
 const LIABILITY_CATEGORIES = ['hutang_bank', 'cicilan_kendaraan', 'pinjaman_pribadi', 'lainnya'];
-
 export function AssetPortfolio() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
-
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const [formData, setFormData] = useState({
     type: 'asset' as 'asset' | 'liability',
     category: '',
@@ -41,20 +41,19 @@ export function AssetPortfolio() {
     current_value: '',
     initial_price: ''
   });
-
   useEffect(() => {
     if (user) {
       loadAssets();
     }
   }, [user]);
-
   const loadAssets = async () => {
     try {
-      const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from('assets').select('*').order('created_at', {
+        ascending: false
+      });
       if (error) throw error;
       setAssets((data || []) as Asset[]);
     } catch (error) {
@@ -68,7 +67,6 @@ export function AssetPortfolio() {
       setLoading(false);
     }
   };
-
   const resetForm = () => {
     setFormData({
       type: 'asset',
@@ -80,11 +78,9 @@ export function AssetPortfolio() {
     setEditingAsset(null);
     setShowForm(false);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
     setIsSubmitting(true);
     try {
       const assetData = {
@@ -95,32 +91,25 @@ export function AssetPortfolio() {
         initial_price: parseFloat(formData.initial_price),
         user_id: user.id
       };
-
       if (editingAsset) {
-        const { error } = await supabase
-          .from('assets')
-          .update(assetData)
-          .eq('id', editingAsset.id);
-
+        const {
+          error
+        } = await supabase.from('assets').update(assetData).eq('id', editingAsset.id);
         if (error) throw error;
-        
         toast({
           title: "Success",
           description: "Asset updated successfully"
         });
       } else {
-        const { error } = await supabase
-          .from('assets')
-          .insert([assetData]);
-
+        const {
+          error
+        } = await supabase.from('assets').insert([assetData]);
         if (error) throw error;
-        
         toast({
           title: "Success",
           description: "Asset added successfully"
         });
       }
-
       resetForm();
       loadAssets();
     } catch (error: any) {
@@ -134,7 +123,6 @@ export function AssetPortfolio() {
       setIsSubmitting(false);
     }
   };
-
   const handleEdit = (asset: Asset) => {
     setFormData({
       type: asset.type,
@@ -146,23 +134,17 @@ export function AssetPortfolio() {
     setEditingAsset(asset);
     setShowForm(true);
   };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this asset?')) return;
-
     try {
-      const { error } = await supabase
-        .from('assets')
-        .delete()
-        .eq('id', id);
-
+      const {
+        error
+      } = await supabase.from('assets').delete().eq('id', id);
       if (error) throw error;
-
       toast({
         title: "Success",
         description: "Asset deleted successfully"
       });
-      
       loadAssets();
     } catch (error: any) {
       console.error('Error deleting asset:', error);
@@ -173,7 +155,6 @@ export function AssetPortfolio() {
       });
     }
   };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -181,20 +162,24 @@ export function AssetPortfolio() {
       minimumFractionDigits: 0
     }).format(amount);
   };
-
   const formatCategory = (category: string) => {
     return category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
-
   const getCategoryColor = (type: 'asset' | 'liability', category: string) => {
     if (type === 'asset') {
-      switch(category) {
-        case 'emas': return 'bg-yellow-100 text-yellow-800';
-        case 'kripto': return 'bg-blue-100 text-blue-800';
-        case 'kendaraan': return 'bg-green-100 text-green-800';
-        case 'properti': return 'bg-purple-100 text-purple-800';
-        case 'elektronik': return 'bg-orange-100 text-orange-800';
-        default: return 'bg-gray-100 text-gray-800';
+      switch (category) {
+        case 'emas':
+          return 'bg-yellow-100 text-yellow-800';
+        case 'kripto':
+          return 'bg-blue-100 text-blue-800';
+        case 'kendaraan':
+          return 'bg-green-100 text-green-800';
+        case 'properti':
+          return 'bg-purple-100 text-purple-800';
+        case 'elektronik':
+          return 'bg-orange-100 text-orange-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
       }
     } else {
       return 'bg-red-100 text-red-800';
@@ -205,28 +190,19 @@ export function AssetPortfolio() {
   const totalAssets = assets.filter(a => a.type === 'asset').reduce((sum, asset) => sum + asset.current_value, 0);
   const totalLiabilities = assets.filter(a => a.type === 'liability').reduce((sum, asset) => sum + asset.current_value, 0);
   const netWorth = totalAssets - totalLiabilities;
-
   const availableCategories = formData.type === 'asset' ? ASSET_CATEGORIES : LIABILITY_CATEGORIES;
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
+    return <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">Asset Portfolio</h1>
           <p className="text-muted-foreground mt-1">Manage your assets and liabilities</p>
         </div>
-        <Button 
-          onClick={() => setShowForm(true)} 
-          className="bg-primary hover:bg-primary-dark"
-        >
+        <Button onClick={() => setShowForm(true)} className="bg-primary hover:bg-primary-dark">
           <Plus className="mr-2 h-4 w-4" />
           Add Asset
         </Button>
@@ -279,8 +255,7 @@ export function AssetPortfolio() {
         </Card>
       </div>
 
-      {showForm && (
-        <Card>
+      {showForm && <Card>
           <CardHeader>
             <CardTitle>{editingAsset ? 'Edit Asset' : 'Add New Asset'}</CardTitle>
             <CardDescription>
@@ -292,12 +267,13 @@ export function AssetPortfolio() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="type">Type</Label>
-                  <Select 
-                    value={formData.type} 
-                    onValueChange={(value: 'asset' | 'liability') => {
-                      setFormData(prev => ({ ...prev, type: value, category: '' }));
-                    }}
-                  >
+                  <Select value={formData.type} onValueChange={(value: 'asset' | 'liability') => {
+                setFormData(prev => ({
+                  ...prev,
+                  type: value,
+                  category: ''
+                }));
+              }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -310,54 +286,43 @@ export function AssetPortfolio() {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                  >
+                  <Select value={formData.category} onValueChange={value => setFormData(prev => ({
+                ...prev,
+                category: value
+              }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
-                      {availableCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
+                      {availableCategories.map(category => <SelectItem key={category} value={category}>
                           {formatCategory(category)}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Asset Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter asset name"
-                    required
-                  />
+                  <Input id="name" value={formData.name} onChange={e => setFormData(prev => ({
+                ...prev,
+                name: e.target.value
+              }))} placeholder="Enter asset name" required />
                 </div>
 
-                <IDRInput
-                  label="Nilai Saat Ini (IDR)"
-                  value={formData.current_value}
-                  onChange={(value) => setFormData(prev => ({ ...prev, current_value: value }))}
-                  placeholder="Masukkan nilai saat ini"
-                  required
-                />
+                <IDRInput label="Nilai Saat Ini (IDR)" value={formData.current_value} onChange={value => setFormData(prev => ({
+              ...prev,
+              current_value: value
+            }))} placeholder="Masukkan nilai saat ini" required />
 
-                <IDRInput
-                  label="Harga Beli Awal (IDR)"
-                  value={formData.initial_price}
-                  onChange={(value) => setFormData(prev => ({ ...prev, initial_price: value }))}
-                  placeholder="Masukkan harga beli awal"
-                  required
-                />
+                <IDRInput label="Harga Beli Awal (IDR)" value={formData.initial_price} onChange={value => setFormData(prev => ({
+              ...prev,
+              initial_price: value
+            }))} placeholder="Masukkan harga beli awal" required />
               </div>
 
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : (editingAsset ? 'Update Asset' : 'Add Asset')}
+                  {isSubmitting ? 'Saving...' : editingAsset ? 'Update Asset' : 'Add Asset'}
                 </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
@@ -365,8 +330,7 @@ export function AssetPortfolio() {
               </div>
             </form>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
       <Card>
         <CardHeader>
@@ -374,20 +338,13 @@ export function AssetPortfolio() {
           <CardDescription>All your assets and liabilities</CardDescription>
         </CardHeader>
         <CardContent>
-          {assets.length === 0 ? (
-            <div className="text-center py-8">
+          {assets.length === 0 ? <div className="text-center py-8">
               <Wallet className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No assets recorded yet</p>
-              <Button 
-                onClick={() => setShowForm(true)} 
-                variant="outline" 
-                className="mt-4"
-              >
+              <Button onClick={() => setShowForm(true)} variant="outline" className="mt-4">
                 Add Your First Asset
               </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
+            </div> : <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -401,12 +358,10 @@ export function AssetPortfolio() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {assets.map((asset) => {
-                    const change = asset.current_value - asset.initial_price;
-                    const changePercent = asset.initial_price > 0 ? (change / asset.initial_price) * 100 : 0;
-                    
-                    return (
-                      <TableRow key={asset.id}>
+                  {assets.map(asset => {
+                const change = asset.current_value - asset.initial_price;
+                const changePercent = asset.initial_price > 0 ? change / asset.initial_price * 100 : 0;
+                return <TableRow key={asset.id}>
                         <TableCell>
                           <Badge variant={asset.type === 'asset' ? 'default' : 'destructive'}>
                             {asset.type.toUpperCase()}
@@ -432,31 +387,20 @@ export function AssetPortfolio() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEdit(asset)}
-                            >
+                            <Button size="sm" variant="ghost" onClick={() => handleEdit(asset)} className="text-sky-700">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleDelete(asset.id)}
-                            >
+                            <Button size="sm" variant="ghost" onClick={() => handleDelete(asset.id)} className="text-rose-600">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                      </TableRow>;
+              })}
                 </TableBody>
               </Table>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
