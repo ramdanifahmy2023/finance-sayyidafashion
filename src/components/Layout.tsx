@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -6,22 +5,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ProfilePhotoUpload } from '@/components/ProfilePhotoUpload';
 import { LayoutDashboard, ShoppingBag, CreditCard, TrendingDown, PiggyBank, FileText, Settings, LogOut, User } from 'lucide-react';
-
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
   onTabChange: (tab: string) => void;
   onLogout: () => void;
 }
-
 export function Layout({
   children,
   activeTab,
   onTabChange,
   onLogout
 }: LayoutProps) {
-  return (
-    <div className="min-h-screen bg-gradient-surface">
+  return <div className="min-h-screen bg-gradient-surface">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
@@ -47,7 +43,7 @@ export function Layout({
                   <Settings className="mr-2 h-4 w-4" />
                   Pengaturan
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onLogout}>
+                <DropdownMenuItem onClick={onLogout} className="bg-transparent">
                   <LogOut className="mr-2 h-4 w-4" />
                   Keluar
                 </DropdownMenuItem>
@@ -99,6 +95,5 @@ export function Layout({
       <main className="container mx-auto px-4 py-6">
         {children}
       </main>
-    </div>
-  );
+    </div>;
 }
