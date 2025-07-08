@@ -71,7 +71,7 @@ export function SalesTable({
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="rounded-xl bg-rose-600">{formatPaymentMethod(sale.payment_method)}</Badge>
+                    <Badge variant="secondary" className="font-medium">{formatPaymentMethod(sale.payment_method)}</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
