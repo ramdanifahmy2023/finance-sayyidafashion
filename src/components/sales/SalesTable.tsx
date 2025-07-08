@@ -75,10 +75,10 @@ export function SalesTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => onEdit(sale)}>
+                      <Button size="sm" variant="ghost" onClick={() => onEdit(sale)} className="text-sky-700">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => onDelete(sale.id)}>
+                      <Button size="sm" variant="ghost" onClick={() => onDelete(sale.id)} className="text-rose-600">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
