@@ -101,8 +101,13 @@ export function SalesManagement() {
   };
 
   const handleFormSuccess = () => {
-    setShowForm(false);
-    setEditingSale(null);
+    if (editingSale) {
+      setShowForm(false);
+      setEditingSale(null);
+    } else {
+      // Keep form open for adding more sales
+      setShowForm(true);
+    }
   };
 
   const handleFormCancel = () => {

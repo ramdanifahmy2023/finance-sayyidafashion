@@ -123,6 +123,20 @@ export function SalesForm({ editingSale, onSuccess, onCancel }: SalesFormProps) 
         });
       }
 
+      // Reset form for new entries but keep it open
+      if (!editingSale) {
+        setFormData({
+          transaction_date: new Date().toISOString().split('T')[0],
+          customer_name: '',
+          product_type: '',
+          purchase_price: '',
+          selling_price: '',
+          marketplace_fee: '0',
+          payment_method: '',
+          description: ''
+        });
+      }
+      
       onSuccess();
     } catch (error: any) {
       console.error('Error saving sale:', error);

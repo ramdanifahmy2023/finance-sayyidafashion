@@ -1,14 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { IDRInput } from '@/components/ui/idr-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useLosses } from '@/hooks/useLosses';
+import { LossForm } from '@/components/losses/LossForm';
 import { Plus, Edit, Trash2, TrendingDown, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/utils/currencyFormatter';
 interface Loss {
@@ -18,141 +13,29 @@ interface Loss {
   amount: number;
   description: string;
 }
+
 export function LossesManagement() {
-  const [losses, setLosses] = useState<Loss[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { losses, loading, deleteLoss } = useLosses();
   const [editingLoss, setEditingLoss] = useState<Loss | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
-  const [formData, setFormData] = useState({
-    transaction_date: new Date().toISOString().split('T')[0],
-    loss_type: '',
-    amount: '',
-    description: ''
-  });
-  useEffect(() => {
-    if (user) {
-      loadLosses();
-    }
-  }, [user]);
-  const loadLosses = async () => {
-    try {
-      const {
-        data,
-        error
-      } = await supabase.from('losses').select('*').order('transaction_date', {
-        ascending: false
-      });
-      if (error) throw error;
-      setLosses(data || []);
-    } catch (error) {
-      console.error('Error loading losses:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load losses data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+
   const resetForm = () => {
-    setFormData({
-      transaction_date: new Date().toISOString().split('T')[0],
-      loss_type: '',
-      amount: '',
-      description: ''
-    });
     setEditingLoss(null);
     setShowForm(false);
   };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    setIsSubmitting(true);
-    try {
-      const lossData = {
-        transaction_date: formData.transaction_date,
-        loss_type: formData.loss_type,
-        amount: parseFloat(formData.amount),
-        description: formData.description,
-        user_id: user.id
-      };
-      if (editingLoss) {
-        const {
-          error
-        } = await supabase.from('losses').update(lossData).eq('id', editingLoss.id);
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Loss updated successfully"
-        });
-      } else {
-        const {
-          error
-        } = await supabase.from('losses').insert([lossData]);
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Loss recorded successfully"
-        });
-      }
+
+  const handleFormSuccess = () => {
+    if (editingLoss) {
       resetForm();
-      loadLosses();
-    } catch (error: any) {
-      console.error('Error saving loss:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save loss",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      // Keep form open for adding more losses
+      setShowForm(true);
     }
   };
+
   const handleEdit = (loss: Loss) => {
-    setFormData({
-      transaction_date: loss.transaction_date,
-      loss_type: loss.loss_type,
-      amount: loss.amount.toString(),
-      description: loss.description
-    });
     setEditingLoss(loss);
     setShowForm(true);
-  };
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this loss record?')) return;
-    try {
-      const {
-        error
-      } = await supabase.from('losses').delete().eq('id', id);
-      if (error) throw error;
-      toast({
-        title: "Success",
-        description: "Loss deleted successfully"
-      });
-      loadLosses();
-    } catch (error: any) {
-      console.error('Error deleting loss:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete loss",
-        variant: "destructive"
-      });
-    }
-  };
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
   };
 
   // Calculate total losses
@@ -189,57 +72,13 @@ export function LossesManagement() {
         </CardContent>
       </Card>
 
-      {showForm && <Card>
-          <CardHeader>
-            <CardTitle>{editingLoss ? 'Edit Loss Record' : 'Record New Loss'}</CardTitle>
-            <CardDescription>
-              {editingLoss ? 'Update loss information' : 'Enter loss details below'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} noValidate className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="transaction_date">Date</Label>
-                  <Input id="transaction_date" type="date" value={formData.transaction_date} onChange={e => setFormData(prev => ({
-                ...prev,
-                transaction_date: e.target.value
-              }))} required />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="loss_type">Loss Type</Label>
-                  <Input id="loss_type" value={formData.loss_type} onChange={e => setFormData(prev => ({
-                ...prev,
-                loss_type: e.target.value
-              }))} placeholder="e.g., Damaged goods, Theft, Return" required />
-                </div>
-
-                <IDRInput label="Nilai Kerugian (IDR)" value={formData.amount} onChange={value => setFormData(prev => ({
-              ...prev,
-              amount: value
-            }))} placeholder="Masukkan nilai kerugian" required />
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" value={formData.description} onChange={e => setFormData(prev => ({
-                ...prev,
-                description: e.target.value
-              }))} placeholder="Describe the loss incident..." rows={3} required />
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : editingLoss ? 'Update Loss' : 'Record Loss'}
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>}
+      {showForm && (
+        <LossForm
+          editingLoss={editingLoss}
+          onSuccess={handleFormSuccess}
+          onCancel={resetForm}
+        />
+      )}
 
       <Card>
         <CardHeader>
@@ -277,7 +116,7 @@ export function LossesManagement() {
                           <Button size="sm" variant="ghost" onClick={() => handleEdit(loss)} className="text-sky-700">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleDelete(loss.id)} className="text-rose-600">
+                          <Button size="sm" variant="ghost" onClick={() => deleteLoss(loss.id)} className="text-rose-600">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
