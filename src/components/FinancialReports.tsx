@@ -12,7 +12,8 @@ import {
   FileText, 
   Download,
   Calendar,
-  BarChart3
+  BarChart3,
+  Sparkles
 } from 'lucide-react';
 import {
   PieChart,
@@ -62,6 +63,8 @@ export function FinancialReports() {
   const [productData, setProductData] = useState<ChartData[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiInsights, setAiInsights] = useState<string>('');
+  const [generatingInsights, setGeneratingInsights] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -205,17 +208,173 @@ export function FinancialReports() {
   };
 
   const exportToPDF = () => {
-    toast({
-      title: "Coming Soon",
-      description: "PDF export feature will be available soon"
-    });
+    try {
+      const doc = new (window as any).jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(219, 39, 119);
+      doc.text('Laporan Keuangan', 20, 30);
+      
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Sayyida Fashion', 20, 40);
+      doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 20, 50);
+      
+      // Line separator
+      doc.setLineWidth(0.5);
+      doc.line(20, 60, 190, 60);
+      
+      // Financial metrics
+      doc.setFontSize(16);
+      doc.setTextColor(219, 39, 119);
+      doc.text('Ringkasan Keuangan', 20, 75);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      
+      let yPosition = 90;
+      const lineHeight = 15;
+      
+      const metricsData = [
+        ['Total Pendapatan', formatCurrency(summary.totalRevenue)],
+        ['Total Pengeluaran', formatCurrency(summary.totalExpenses)],
+        ['Total Kerugian', formatCurrency(summary.totalLosses)],
+        ['Total Aset', formatCurrency(summary.totalAssets)],
+        ['Total Kewajiban', formatCurrency(summary.totalLiabilities)],
+        ['Laba Bersih', formatCurrency(summary.netProfit)],
+        ['Kekayaan Bersih', formatCurrency(summary.netWorth)]
+      ];
+      
+      metricsData.forEach(([label, value]) => {
+        doc.text(label + ':', 25, yPosition);
+        doc.text(value, 120, yPosition);
+        yPosition += lineHeight;
+      });
+      
+      // Analysis section
+      yPosition += 10;
+      doc.setFontSize(16);
+      doc.setTextColor(219, 39, 119);
+      doc.text('Analisis', 20, yPosition);
+      
+      yPosition += 20;
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      
+      const profitMargin = summary.totalRevenue > 0 ? 
+        ((summary.netProfit / summary.totalRevenue) * 100).toFixed(1) : '0.0';
+      
+      const analysisText = [
+        `Margin Keuntungan: ${profitMargin}%`,
+        `Status: ${summary.netProfit >= 0 ? 'Profitable' : 'Rugi'}`,
+        `Rasio Aset terhadap Kewajiban: ${summary.totalLiabilities > 0 ? (summary.totalAssets / summary.totalLiabilities).toFixed(2) : 'N/A'}`
+      ];
+      
+      analysisText.forEach(text => {
+        doc.text(text, 25, yPosition);
+        yPosition += lineHeight;
+      });
+      
+      // Footer
+      doc.setFontSize(10);
+      doc.setTextColor(128, 128, 128);
+      doc.text(`Dibuat pada: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}`, 20, 280);
+      
+      doc.save(`Laporan_Keuangan_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Berhasil",
+        description: "Laporan PDF berhasil diunduh"
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Gagal membuat laporan PDF",
+        variant: "destructive"
+      });
+    }
   };
 
   const exportToCSV = () => {
-    toast({
-      title: "Coming Soon", 
-      description: "CSV export feature will be available soon"
-    });
+    try {
+      const csvData = [
+        ['Metrik', 'Nilai'],
+        ['Total Pendapatan', summary.totalRevenue],
+        ['Total Pengeluaran', summary.totalExpenses],
+        ['Total Kerugian', summary.totalLosses],
+        ['Total Aset', summary.totalAssets],
+        ['Total Kewajiban', summary.totalLiabilities],
+        ['Laba Bersih', summary.netProfit],
+        ['Kekayaan Bersih', summary.netWorth],
+        [''],
+        ['Data Pengeluaran per Kategori'],
+        ['Kategori', 'Jumlah'],
+        ...expenseData.map(item => [item.name, item.value]),
+        [''],
+        ['Data Penjualan per Produk'],
+        ['Produk', 'Jumlah Penjualan'],
+        ...productData.map(item => [item.name, item.value])
+      ];
+      
+      const csvContent = csvData
+        .map(row => row.map(cell => `"${cell}"`).join(','))
+        .join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Laporan_Keuangan_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Berhasil",
+        description: "Data CSV berhasil diunduh"
+      });
+    } catch (error) {
+      console.error('Error generating CSV:', error);
+      toast({
+        title: "Error",
+        description: "Gagal membuat file CSV",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const generateAIInsights = async () => {
+    setGeneratingInsights(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('financial-ai-insights', {
+        body: {
+          summary,
+          expenseData,
+          productData,
+          monthlyData
+        }
+      });
+
+      if (error) throw error;
+
+      setAiInsights(data.insights);
+      toast({
+        title: "AI Insights Generated",
+        description: "Lihat rekomendasi AI di bawah"
+      });
+    } catch (error) {
+      console.error('Error generating AI insights:', error);
+      toast({
+        title: "Error",
+        description: "Gagal menghasilkan insight AI",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingInsights(false);
+    }
   };
 
   if (loading) {
@@ -234,6 +393,14 @@ export function FinancialReports() {
           <p className="text-muted-foreground mt-1">Comprehensive business analytics and insights</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={generateAIInsights}
+            disabled={generatingInsights}
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            {generatingInsights ? 'Generating...' : 'AI Insights'}
+          </Button>
           <Button variant="outline" onClick={exportToCSV}>
             <Download className="mr-2 h-4 w-4" />
             Export CSV
@@ -437,6 +604,26 @@ export function FinancialReports() {
           </div>
         </CardContent>
       </Card>
+
+      {/* AI Insights */}
+      {aiInsights && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI Financial Insights & Recommendations
+            </CardTitle>
+            <CardDescription>AI-generated analysis and suggestions for your business</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm max-w-none">
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {aiInsights}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
