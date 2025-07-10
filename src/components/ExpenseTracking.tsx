@@ -7,13 +7,8 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { ExpenseForm } from '@/components/expenses/ExpenseForm';
 import { Plus, Edit, Trash2, Receipt } from 'lucide-react';
 import { formatCurrency } from '@/utils/currencyFormatter';
-interface Expense {
-  id: string;
-  transaction_date: string;
-  category: string;
-  amount: number;
-  description?: string;
-}
+import { Expense } from '@/types/expense';
+import { formatCategory, getCategoryColor } from '@/utils/expenseUtils';
 
 export function ExpenseTracking() {
   const { expenses, loading, deleteExpense } = useExpenses();
@@ -35,42 +30,6 @@ export function ExpenseTracking() {
   const handleEdit = (expense: Expense) => {
     setEditingExpense(expense);
     setShowForm(true);
-  };
-  const formatCategory = (category: string) => {
-    switch (category) {
-      case 'lakban':
-        return 'Lakban';
-      case 'plastik_packing':
-        return 'Plastik Packing';
-      case 'operasional':
-        return 'Operasional';
-      case 'gaji':
-        return 'Gaji';
-      case 'transportasi':
-        return 'Transportasi';
-      case 'dll':
-        return 'Lainnya';
-      default:
-        return category;
-    }
-  };
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'lakban':
-        return 'bg-blue-100 text-blue-800';
-      case 'plastik_packing':
-        return 'bg-green-100 text-green-800';
-      case 'operasional':
-        return 'bg-orange-100 text-orange-800';
-      case 'gaji':
-        return 'bg-purple-100 text-purple-800';
-      case 'transportasi':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'dll':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
   };
 
   // Calculate total expenses
