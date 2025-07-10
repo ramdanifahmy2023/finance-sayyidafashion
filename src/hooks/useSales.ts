@@ -21,7 +21,8 @@ export function useSales() {
         .select('*')
         .gte('transaction_date', range.startDate)
         .lte('transaction_date', range.endDate)
-        .order('transaction_date', { ascending: false });
+        .order('transaction_date', { ascending: false })
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data;
