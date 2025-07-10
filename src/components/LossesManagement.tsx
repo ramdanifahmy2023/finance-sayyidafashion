@@ -6,13 +6,7 @@ import { useLosses } from '@/hooks/useLosses';
 import { LossForm } from '@/components/losses/LossForm';
 import { Plus, Edit, Trash2, TrendingDown, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/utils/currencyFormatter';
-interface Loss {
-  id: string;
-  transaction_date: string;
-  loss_type: string;
-  amount: number;
-  description: string;
-}
+import { Loss } from '@/types/loss';
 
 export function LossesManagement() {
   const { losses, loading, deleteLoss } = useLosses();
