@@ -28,7 +28,7 @@ export function Layout({
               </div>
               <div>
                 <h1 className="font-display font-semibold text-lg text-foreground">Finance Sayyida Fashion</h1>
-                <p className="text-xs text-muted-foreground">Web Pencatat Keuangan Perusahaan anda</p>
+                <p className="text-xs text-muted-foreground">Smart Web Finance Tech with A.I. Analysis</p>
               </div>
             </div>
             
