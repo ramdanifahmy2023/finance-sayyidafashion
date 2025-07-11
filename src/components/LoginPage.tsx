@@ -5,28 +5,30 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, ShoppingBag, Sparkles, TrendingUp } from 'lucide-react';
+
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
   isLoading: boolean;
   error: string | null;
 }
-export function LoginPage({
-  onLogin,
-  isLoading,
-  error
-}: LoginPageProps) {
+
+export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onLogin(email, password);
   };
+
   const fillDemo = () => {
     setEmail('demo@sayyida.com');
     setPassword('demo123');
   };
-  return <div className="min-h-screen bg-gradient-surface flex items-center justify-center p-4">
+
+  return (
+    <div className="min-h-screen bg-gradient-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo and Brand */}
         <div className="text-center mb-8">
@@ -69,26 +71,59 @@ export function LoginPage({
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Masukkan email Anda" value={email} onChange={e => setEmail(e.target.value)} required className="bg-background border-border focus:ring-primary" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Masukkan email Anda"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-background border-border focus:ring-primary"
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="password">Kata Sandi</Label>
                 <div className="relative">
-                  <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Masukkan kata sandi Anda" value={password} onChange={e => setPassword(e.target.value)} required className="bg-background border-border focus:ring-primary pr-10" />
-                  <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Masukkan kata sandi Anda"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-background border-border focus:ring-primary pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
 
-              {error && <Alert className="border-destructive bg-destructive-light">
+              {error && (
+                <Alert className="border-destructive bg-destructive-light">
                   <AlertDescription className="text-destructive">
                     {error}
                   </AlertDescription>
-                </Alert>}
+                </Alert>
+              )}
 
-              <Button type="submit" className="w-full" variant="gradient" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                variant="gradient"
+                disabled={isLoading}
+              >
                 {isLoading ? 'Masuk...' : 'Masuk'}
               </Button>
             </form>
@@ -100,7 +135,12 @@ export function LoginPage({
                 <p>Email: demo@sayyida.com</p>
                 <p>Kata Sandi: demo123</p>
               </div>
-              <Button variant="soft" size="sm" onClick={fillDemo} className="mt-2 w-full text-slate-50 bg-fuchsia-600 hover:bg-fuchsia-500">
+              <Button 
+                variant="soft" 
+                size="sm" 
+                className="mt-2 w-full"
+                onClick={fillDemo}
+              >
                 Gunakan Kredensial Demo
               </Button>
             </div>
@@ -112,5 +152,6 @@ export function LoginPage({
           Dibuat dengan ❤️ untuk bisnis fashion modern
         </p>
       </div>
-    </div>;
+    </div>
+  );
 }
