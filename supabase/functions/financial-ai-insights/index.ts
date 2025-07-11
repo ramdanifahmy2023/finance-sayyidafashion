@@ -15,9 +15,9 @@ serve(async (req) => {
   try {
     const { summary, expenseData, productData, monthlyData } = await req.json();
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      throw new Error('Gemini API key not configured');
     }
 
     // Format currency for Indonesian Rupiah
@@ -63,35 +63,34 @@ Berikan analisis yang mencakup:
 Gunakan format yang jelas dengan bullet points dan heading yang mudah dibaca. Berikan angka spesifik dan persentase jika relevan.
 `;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
+        contents: [
           {
-            role: 'system',
-            content: 'Anda adalah ahli analisis keuangan bisnis yang berpengalaman dalam industri fashion dan retail. Berikan analisis yang mendalam, praktis, dan actionable dalam bahasa Indonesia yang mudah dipahami oleh pemilik bisnis.'
-          },
-          {
-            role: 'user',
-            content: analysisPrompt
+            parts: [
+              {
+                text: `Anda adalah ahli analisis keuangan bisnis yang berpengalaman dalam industri fashion dan retail. Berikan analisis yang mendalam, praktis, dan actionable dalam bahasa Indonesia yang mudah dipahami oleh pemilik bisnis.\n\n${analysisPrompt}`
+              }
+            ]
           }
         ],
-        temperature: 0.7,
-        max_tokens: 2000
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
+        }
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const insights = data.choices[0].message.content;
+    const insights = data.candidates[0].content.parts[0].text;
 
     console.log('AI insights generated successfully');
 
