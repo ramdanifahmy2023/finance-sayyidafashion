@@ -13,7 +13,18 @@ serve(async (req) => {
   }
 
   try {
-    const { summary, expenseData, productData, monthlyData } = await req.json();
+    const { 
+      summary, 
+      expenseData, 
+      productData, 
+      monthlyData,
+      detailedSales,
+      detailedExpenses,
+      detailedLosses,
+      customerAnalysis,
+      periodComparison,
+      businessKPIs
+    } = await req.json();
 
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
@@ -29,38 +40,149 @@ serve(async (req) => {
       }).format(amount);
     };
 
-    // Build comprehensive financial analysis prompt
+    // Build comprehensive financial analysis prompt with enhanced data
     const analysisPrompt = `
-Sebagai ahli keuangan bisnis, analisis data keuangan berikut untuk Sayyida Fashion dan berikan insight serta rekomendasi dalam bahasa Indonesia:
+Sebagai ahli analisis keuangan bisnis yang berpengalaman dalam industri fashion dan retail Indonesia, analisis data keuangan berikut untuk Sayyida Fashion dan berikan insight mendalam serta rekomendasi strategis dalam bahasa Indonesia:
 
-RINGKASAN KEUANGAN:
+# RINGKASAN KEUANGAN UTAMA:
 - Total Pendapatan: ${formatCurrency(summary.totalRevenue)}
+- Total Modal: ${formatCurrency(summary.totalCapital || 0)}
 - Total Pengeluaran: ${formatCurrency(summary.totalExpenses)}
 - Total Kerugian: ${formatCurrency(summary.totalLosses)}
-- Total Aset: ${formatCurrency(summary.totalAssets)}
-- Total Kewajiban: ${formatCurrency(summary.totalLiabilities)}
+- Gross Margin: ${formatCurrency(summary.grossMargin || 0)}
 - Laba Bersih: ${formatCurrency(summary.netProfit)}
-- Kekayaan Bersih: ${formatCurrency(summary.netWorth)}
+- Total Transaksi: ${summary.totalTransactions || 0}
+- Fee Marketplace: ${formatCurrency(summary.marketplaceFees || 0)}
 
-PENGELUARAN PER KATEGORI:
+# KPI BISNIS FASHION:
+${businessKPIs ? `
+- Average Order Value (AOV): ${formatCurrency(businessKPIs.averageOrderValue)}
+- Gross Margin %: ${businessKPIs.grossMarginPercent?.toFixed(2)}%
+- Net Profit Margin %: ${businessKPIs.netProfitMargin?.toFixed(2)}%
+- Marketplace Fee Ratio: ${businessKPIs.marketplaceFeeRatio?.toFixed(2)}%
+- Revenue per Transaction: ${formatCurrency(businessKPIs.revenuePerTransaction)}
+- Monthly Growth Rate: ${businessKPIs.monthlyGrowthRate?.toFixed(2)}%
+` : ''}
+
+# ANALISIS PERIODE PERBANDINGAN:
+${periodComparison ? `
+## Pertumbuhan Bulanan:
+- Revenue Growth: ${periodComparison.revenueGrowth?.toFixed(2)}%
+- Expense Growth: ${periodComparison.expenseGrowth?.toFixed(2)}%
+- Profit Growth: ${periodComparison.profitGrowth?.toFixed(2)}%
+- Transaction Growth: ${periodComparison.transactionGrowth?.toFixed(2)}%
+
+## Perbandingan vs Bulan Lalu:
+- Revenue: ${formatCurrency(periodComparison.currentRevenue)} vs ${formatCurrency(periodComparison.previousRevenue)}
+- Expenses: ${formatCurrency(periodComparison.currentExpenses)} vs ${formatCurrency(periodComparison.previousExpenses)}
+- Profit: ${formatCurrency(periodComparison.currentProfit)} vs ${formatCurrency(periodComparison.previousProfit)}
+` : ''}
+
+# DETAIL TRANSAKSI PENJUALAN:
+${detailedSales?.slice(0, 20).map(sale => 
+  `- ${sale.product_type}: ${formatCurrency(sale.selling_price)} (Modal: ${formatCurrency(sale.purchase_price)}, Margin: ${formatCurrency(sale.selling_price - sale.purchase_price)}) - ${sale.customer_name} via ${sale.payment_method}`
+).join('\n') || 'Data detail tidak tersedia'}
+
+# ANALISIS PELANGGAN:
+${customerAnalysis ? `
+- Total Unique Customers: ${customerAnalysis.totalCustomers}
+- Repeat Customers: ${customerAnalysis.repeatCustomers}
+- Average Revenue per Customer: ${formatCurrency(customerAnalysis.avgRevenuePerCustomer)}
+- Top Customer Spending: ${formatCurrency(customerAnalysis.topCustomerSpending)}
+- Customer Retention Rate: ${customerAnalysis.retentionRate?.toFixed(2)}%
+
+## Top 5 Customers:
+${customerAnalysis.topCustomers?.map(customer => 
+  `- ${customer.name}: ${customer.totalPurchases} transaksi, ${formatCurrency(customer.totalSpent)}`
+).join('\n') || ''}
+` : ''}
+
+# BREAKDOWN PENGELUARAN DETAIL:
 ${expenseData.map(item => `- ${item.name}: ${formatCurrency(item.value)}`).join('\n')}
 
-PENJUALAN PER PRODUK:
-${productData.map(item => `- ${item.name}: ${item.value} unit`).join('\n')}
+# DETAIL PENGELUARAN TERBESAR:
+${detailedExpenses?.slice(0, 10).map(expense => 
+  `- ${expense.category}: ${formatCurrency(expense.amount)} - ${expense.description || 'No description'} (${new Date(expense.transaction_date).toLocaleDateString('id-ID')})`
+).join('\n') || 'Data detail tidak tersedia'}
 
-TREN BULANAN:
-${monthlyData.map(item => `- ${item.month}: Pendapatan ${formatCurrency(item.revenue)}, Pengeluaran ${formatCurrency(item.expenses)}, Profit ${formatCurrency(item.profit)}`).join('\n')}
+# PERFORMA PRODUK & KATEGORI:
+${productData.map(item => `- ${item.name}: ${item.value} unit terjual`).join('\n')}
 
-Berikan analisis yang mencakup:
-1. **KESEHATAN KEUANGAN BISNIS**: Evaluasi kondisi keuangan saat ini
-2. **ANALISIS PROFITABILITAS**: Margin keuntungan dan efisiensi
-3. **TREN DAN POLA**: Identifikasi tren dari data bulanan
-4. **MANAJEMEN PENGELUARAN**: Analisis kategori pengeluaran yang perlu dioptimalkan
-5. **PERFORMA PRODUK**: Produk mana yang paling menguntungkan
-6. **REKOMENDASI STRATEGIS**: 5-7 saran konkret untuk meningkatkan kinerja keuangan
-7. **PERINGATAN & RISIKO**: Identifikasi area yang memerlukan perhatian khusus
+# ANALISIS KERUGIAN:
+${detailedLosses?.slice(0, 10).map(loss => 
+  `- ${loss.loss_type}: ${formatCurrency(loss.amount)} - ${loss.description} (${new Date(loss.transaction_date).toLocaleDateString('id-ID')})`
+).join('\n') || 'Tidak ada kerugian dalam periode ini'}
 
-Gunakan format yang jelas dengan bullet points dan heading yang mudah dibaca. Berikan angka spesifik dan persentase jika relevan.
+# TREN BULANAN KOMPREHENSIF:
+${monthlyData.map(item => `- ${item.month}: Revenue ${formatCurrency(item.revenue)}, Expenses ${formatCurrency(item.expenses)}, Profit ${formatCurrency(item.profit)} (Margin: ${item.revenue > 0 ? ((item.profit / item.revenue) * 100).toFixed(2) : 0}%)`).join('\n')}
+
+# KONTEKS INDUSTRI FASHION INDONESIA:
+- Musim: ${new Date().getMonth() >= 5 && new Date().getMonth() <= 7 ? 'Periode Ramadan & Lebaran (High Season)' : new Date().getMonth() >= 10 || new Date().getMonth() <= 1 ? 'Periode Akhir Tahun (Holiday Season)' : 'Regular Season'}
+- Target Market: Fashion Muslim Indonesia
+- Kompetisi: E-commerce fashion lokal dan brand internasional
+- Payment Methods: Dominasi digital payment dan marketplace
+
+BERIKAN ANALISIS MENDALAM YANG MENCAKUP:
+
+## 1. 🏥 DIAGNOSA KESEHATAN BISNIS
+- Analisis cash flow dan likuiditas
+- Debt-to-equity ratio assessment
+- Profitability sustainability analysis
+
+## 2. 📊 ANALISIS PROFITABILITAS ADVANCED
+- Gross margin analysis per produk
+- Customer acquisition cost vs lifetime value
+- Channel profitability (marketplace vs direct)
+- Unit economics breakdown
+
+## 3. 📈 TREN & PATTERN RECOGNITION
+- Seasonal patterns dalam fashion
+- Customer behavior patterns
+- Product lifecycle analysis
+- Market demand forecasting
+
+## 4. 💰 OPTIMISASI PENGELUARAN STRATEGIS
+- Cost center prioritization
+- ROI analysis per kategori pengeluaran
+- Efficiency improvement opportunities
+- Budget reallocation recommendations
+
+## 5. 🎯 ANALISIS PERFORMA PRODUK & PORTFOLIO
+- Best performing vs underperforming products
+- Inventory turnover analysis
+- Cross-selling opportunities
+- Product mix optimization
+
+## 6. 👥 CUSTOMER INTELLIGENCE & SEGMENTATION
+- Customer lifetime value analysis
+- Retention vs acquisition strategies
+- Price sensitivity analysis
+- Market segment opportunities
+
+## 7. 🚀 REKOMENDASI STRATEGIS ACTIONABLE
+- 7-10 specific action items dengan timeline
+- ROI projections untuk setiap rekomendasi
+- Resource requirements dan implementation plan
+- Risk mitigation strategies
+
+## 8. ⚠️ RISK ASSESSMENT & EARLY WARNING INDICATORS
+- Cash flow risks
+- Market competition threats
+- Operational efficiency gaps
+- Financial red flags
+
+## 9. 🔮 PREDIKSI & FORECASTING
+- Revenue projections 3-6 bulan ke depan
+- Seasonal adjustment recommendations
+- Growth scenario modeling
+- Market opportunity sizing
+
+## 10. 📋 ACTION PLAN PRIORITAS
+- Quick wins (0-30 hari)
+- Medium term initiatives (1-3 bulan)
+- Long term strategic moves (3-12 bulan)
+
+Gunakan data spesifik, berikan persentase yang akurat, dan pastikan semua rekomendasi actionable dengan clear metrics untuk tracking success. Fokus pada insights yang bisa diimplementasikan langsung oleh pemilik bisnis fashion Indonesia.
 `;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
@@ -80,7 +202,7 @@ Gunakan format yang jelas dengan bullet points dan heading yang mudah dibaca. Be
         ],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 2000,
+          maxOutputTokens: 4000,
         }
       }),
     });

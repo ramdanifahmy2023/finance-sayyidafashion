@@ -59,16 +59,59 @@ export function DashboardHeader() {
 
     setGeneratingInsights(true);
     try {
-      // Load additional data for comprehensive analysis
-      const [salesData, expensesData, lossesData, assetsData] = await Promise.all([
-        supabase.from('sales').select('*').eq('user_id', user.id),
-        supabase.from('expenses').select('*').eq('user_id', user.id),
-        supabase.from('losses').select('*').eq('user_id', user.id),
-        supabase.from('assets').select('*').eq('user_id', user.id)
+      // Load comprehensive data for enhanced AI analysis
+      const targetDate = selectedDate || new Date();
+      const firstDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+      const lastDay = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+      
+      // Get previous month for comparison
+      const prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, 1);
+      const prevMonthEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
+
+      const [
+        allSalesData, 
+        allExpensesData, 
+        allLossesData, 
+        allAssetsData,
+        currentSalesData,
+        currentExpensesData,
+        currentLossesData,
+        prevSalesData,
+        prevExpensesData
+      ] = await Promise.all([
+        // All historical data
+        supabase.from('sales').select('*').eq('user_id', user.id).order('transaction_date', { ascending: false }),
+        supabase.from('expenses').select('*').eq('user_id', user.id).order('transaction_date', { ascending: false }),
+        supabase.from('losses').select('*').eq('user_id', user.id).order('transaction_date', { ascending: false }),
+        supabase.from('assets').select('*').eq('user_id', user.id),
+        
+        // Current month data
+        supabase.from('sales').select('*').eq('user_id', user.id)
+          .gte('transaction_date', firstDay.toISOString().split('T')[0])
+          .lte('transaction_date', lastDay.toISOString().split('T')[0])
+          .order('transaction_date', { ascending: false }),
+        supabase.from('expenses').select('*').eq('user_id', user.id)
+          .gte('transaction_date', firstDay.toISOString().split('T')[0])
+          .lte('transaction_date', lastDay.toISOString().split('T')[0])
+          .order('transaction_date', { ascending: false }),
+        supabase.from('losses').select('*').eq('user_id', user.id)
+          .gte('transaction_date', firstDay.toISOString().split('T')[0])
+          .lte('transaction_date', lastDay.toISOString().split('T')[0])
+          .order('transaction_date', { ascending: false }),
+          
+        // Previous month data for comparison
+        supabase.from('sales').select('*').eq('user_id', user.id)
+          .gte('transaction_date', prevMonth.toISOString().split('T')[0])
+          .lte('transaction_date', prevMonthEnd.toISOString().split('T')[0]),
+        supabase.from('expenses').select('*').eq('user_id', user.id)
+          .gte('transaction_date', prevMonth.toISOString().split('T')[0])
+          .lte('transaction_date', prevMonthEnd.toISOString().split('T')[0])
       ]);
 
-      // Process expense data for chart
-      const expenseByCategory = expensesData.data?.reduce((acc: any, expense) => {
+      // Enhanced data processing for comprehensive AI analysis
+      
+      // 1. Process expense data for chart
+      const expenseByCategory = currentExpensesData.data?.reduce((acc: any, expense) => {
         acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
         return acc;
       }, {}) || {};
@@ -77,8 +120,8 @@ export function DashboardHeader() {
         value: amount as number
       }));
 
-      // Process product data for chart
-      const productSales = salesData.data?.reduce((acc: any, sale) => {
+      // 2. Process product data for chart  
+      const productSales = currentSalesData.data?.reduce((acc: any, sale) => {
         acc[sale.product_type] = (acc[sale.product_type] || 0) + 1;
         return acc;
       }, {}) || {};
@@ -87,41 +130,162 @@ export function DashboardHeader() {
         value: count as number
       }));
 
-      // Process monthly data
-      const monthlyRevenue = salesData.data?.reduce((acc: any, sale) => {
-        const month = new Date(sale.transaction_date).toLocaleString('default', { month: 'short' });
-        acc[month] = (acc[month] || 0) + sale.selling_price;
-        return acc;
-      }, {}) || {};
-      const monthlyExpense = expensesData.data?.reduce((acc: any, expense) => {
-        const month = new Date(expense.transaction_date).toLocaleString('default', { month: 'short' });
-        acc[month] = (acc[month] || 0) + expense.amount;
-        return acc;
-      }, {}) || {};
-      const monthlyData = Object.keys({ ...monthlyRevenue, ...monthlyExpense }).map(month => ({
-        month,
-        revenue: monthlyRevenue[month] || 0,
-        expenses: monthlyExpense[month] || 0,
-        profit: (monthlyRevenue[month] || 0) - (monthlyExpense[month] || 0)
-      }));
+      // 3. Process enhanced monthly data with 12-month history
+      const last12Months = Array.from({ length: 12 }, (_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        return {
+          month: date.toLocaleString('id-ID', { month: 'short', year: '2-digit' }),
+          monthIndex: date.getMonth(),
+          year: date.getFullYear()
+        };
+      }).reverse();
 
-      const summary = {
-        totalRevenue: metrics.totalRevenue,
-        totalExpenses: metrics.totalExpenses,
-        totalLosses: metrics.totalLosses,
-        totalAssets: assetsData.data?.filter(a => a.type === 'asset').reduce((sum, asset) => sum + asset.current_value, 0) || 0,
-        totalLiabilities: assetsData.data?.filter(a => a.type === 'liability').reduce((sum, asset) => sum + asset.current_value, 0) || 0,
-        netProfit: metrics.netProfit,
-        netWorth: (assetsData.data?.filter(a => a.type === 'asset').reduce((sum, asset) => sum + asset.current_value, 0) || 0) - 
-                  (assetsData.data?.filter(a => a.type === 'liability').reduce((sum, asset) => sum + asset.current_value, 0) || 0)
+      const monthlyData = last12Months.map(({ month, monthIndex, year }) => {
+        const monthRevenue = allSalesData.data?.filter(sale => {
+          const saleDate = new Date(sale.transaction_date);
+          return saleDate.getMonth() === monthIndex && saleDate.getFullYear() === year;
+        }).reduce((sum, sale) => sum + sale.selling_price, 0) || 0;
+
+        const monthExpenses = allExpensesData.data?.filter(expense => {
+          const expenseDate = new Date(expense.transaction_date);
+          return expenseDate.getMonth() === monthIndex && expenseDate.getFullYear() === year;
+        }).reduce((sum, expense) => sum + expense.amount, 0) || 0;
+
+        return {
+          month,
+          revenue: monthRevenue,
+          expenses: monthExpenses,
+          profit: monthRevenue - monthExpenses
+        };
+      });
+
+      // 4. Enhanced customer analysis
+      const customerData = currentSalesData.data?.reduce((acc: any, sale) => {
+        if (!acc[sale.customer_name]) {
+          acc[sale.customer_name] = {
+            name: sale.customer_name,
+            totalPurchases: 0,
+            totalSpent: 0,
+            lastPurchase: sale.transaction_date
+          };
+        }
+        acc[sale.customer_name].totalPurchases += 1;
+        acc[sale.customer_name].totalSpent += sale.selling_price;
+        if (sale.transaction_date > acc[sale.customer_name].lastPurchase) {
+          acc[sale.customer_name].lastPurchase = sale.transaction_date;
+        }
+        return acc;
+      }, {}) || {};
+
+      const allCustomerData = allSalesData.data?.reduce((acc: any, sale) => {
+        if (!acc[sale.customer_name]) {
+          acc[sale.customer_name] = {
+            name: sale.customer_name,
+            totalPurchases: 0,
+            totalSpent: 0,
+            firstPurchase: sale.transaction_date,
+            lastPurchase: sale.transaction_date
+          };
+        }
+        acc[sale.customer_name].totalPurchases += 1;
+        acc[sale.customer_name].totalSpent += sale.selling_price;
+        if (sale.transaction_date < acc[sale.customer_name].firstPurchase) {
+          acc[sale.customer_name].firstPurchase = sale.transaction_date;
+        }
+        if (sale.transaction_date > acc[sale.customer_name].lastPurchase) {
+          acc[sale.customer_name].lastPurchase = sale.transaction_date;
+        }
+        return acc;
+      }, {}) || {};
+
+      const customers = Object.values(customerData) as any[];
+      const allCustomers = Object.values(allCustomerData) as any[];
+      const totalCustomers = Object.keys(customerData).length;
+      const repeatCustomers = customers.filter((c: any) => c.totalPurchases > 1).length;
+      const avgRevenuePerCustomer = customers.length > 0 ? 
+        customers.reduce((sum: number, c: any) => sum + Number(c.totalSpent || 0), 0) / customers.length : 0;
+      const topCustomerSpending = customers.length > 0 ? Math.max(...customers.map((c: any) => Number(c.totalSpent || 0))) : 0;
+      const retentionRate = totalCustomers > 0 ? (repeatCustomers / totalCustomers) * 100 : 0;
+
+      const customerAnalysis = {
+        totalCustomers,
+        repeatCustomers,
+        avgRevenuePerCustomer,
+        topCustomerSpending,
+        retentionRate,
+        topCustomers: customers
+          .sort((a: any, b: any) => b.totalSpent - a.totalSpent)
+          .slice(0, 5)
       };
 
+      // 5. Period comparison calculations
+      const currentRevenue = currentSalesData.data?.reduce((sum, sale) => sum + sale.selling_price, 0) || 0;
+      const currentExpenses = currentExpensesData.data?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
+      const currentProfit = currentRevenue - currentExpenses;
+      const currentTransactions = currentSalesData.data?.length || 0;
+
+      const previousRevenue = prevSalesData.data?.reduce((sum, sale) => sum + sale.selling_price, 0) || 0;
+      const previousExpenses = prevExpensesData.data?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
+      const previousProfit = previousRevenue - previousExpenses;
+      const previousTransactions = prevSalesData.data?.length || 0;
+
+      const periodComparison = {
+        revenueGrowth: previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0,
+        expenseGrowth: previousExpenses > 0 ? ((currentExpenses - previousExpenses) / previousExpenses) * 100 : 0,
+        profitGrowth: previousProfit > 0 ? ((currentProfit - previousProfit) / previousProfit) * 100 : 0,
+        transactionGrowth: previousTransactions > 0 ? ((currentTransactions - previousTransactions) / previousTransactions) * 100 : 0,
+        currentRevenue,
+        previousRevenue,
+        currentExpenses,
+        previousExpenses,
+        currentProfit,
+        previousProfit
+      };
+
+      // 6. Enhanced business KPIs
+      const totalCapital = currentSalesData.data?.reduce((sum, sale) => sum + sale.purchase_price, 0) || 0;
+      const totalMarketplaceFees = currentSalesData.data?.reduce((sum, sale) => sum + (sale.marketplace_fee || 0), 0) || 0;
+      const grossMargin = currentRevenue - totalCapital - totalMarketplaceFees;
+
+      const businessKPIs = {
+        averageOrderValue: currentTransactions > 0 ? currentRevenue / currentTransactions : 0,
+        grossMarginPercent: currentRevenue > 0 ? (grossMargin / currentRevenue) * 100 : 0,
+        netProfitMargin: currentRevenue > 0 ? (currentProfit / currentRevenue) * 100 : 0,
+        marketplaceFeeRatio: currentRevenue > 0 ? (totalMarketplaceFees / currentRevenue) * 100 : 0,
+        revenuePerTransaction: currentTransactions > 0 ? currentRevenue / currentTransactions : 0,
+        monthlyGrowthRate: periodComparison.revenueGrowth
+      };
+
+      // 7. Enhanced summary with comprehensive metrics
+      const summary = {
+        totalRevenue: metrics.totalRevenue,
+        totalCapital: totalCapital,
+        totalExpenses: metrics.totalExpenses,
+        totalLosses: metrics.totalLosses,
+        grossMargin: grossMargin,
+        netProfit: metrics.netProfit,
+        totalTransactions: currentTransactions,
+        marketplaceFees: totalMarketplaceFees,
+        totalAssets: allAssetsData.data?.filter(a => a.type === 'asset').reduce((sum, asset) => sum + asset.current_value, 0) || 0,
+        totalLiabilities: allAssetsData.data?.filter(a => a.type === 'liability').reduce((sum, asset) => sum + asset.current_value, 0) || 0,
+        netWorth: (allAssetsData.data?.filter(a => a.type === 'asset').reduce((sum, asset) => sum + asset.current_value, 0) || 0) - 
+                  (allAssetsData.data?.filter(a => a.type === 'liability').reduce((sum, asset) => sum + asset.current_value, 0) || 0)
+      };
+
+      // Send comprehensive data to AI for enhanced analysis
       const { data, error } = await supabase.functions.invoke('financial-ai-insights', {
         body: {
           summary,
           expenseData,
           productData,
-          monthlyData
+          monthlyData,
+          detailedSales: currentSalesData.data || [],
+          detailedExpenses: currentExpensesData.data || [],
+          detailedLosses: currentLossesData.data || [],
+          customerAnalysis,
+          periodComparison,
+          businessKPIs
         }
       });
 
