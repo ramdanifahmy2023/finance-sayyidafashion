@@ -182,14 +182,14 @@ export function TransactionListModal({ isOpen, onClose }: TransactionListModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Semua Transaksi</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="flex flex-col space-y-4 min-h-0 flex-1">
           {/* Filters */}
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-4 items-center flex-shrink-0">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -226,8 +226,8 @@ export function TransactionListModal({ isOpen, onClose }: TransactionListModalPr
             </Select>
           </div>
 
-          {/* Transaction list */}
-          <div className="border rounded-lg overflow-hidden">
+          {/* Transaction list - Scrollable Area */}
+          <div className="border rounded-lg overflow-hidden flex-1 min-h-0">
             {loading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -238,37 +238,39 @@ export function TransactionListModal({ isOpen, onClose }: TransactionListModalPr
                 Tidak ada transaksi ditemukan
               </div>
             ) : (
-              <div className="divide-y">
-                {transactions.map((transaction) => (
-                  <div key={transaction.id} className="p-4 flex items-center justify-between hover:bg-muted/50">
-                    <div className="flex items-center space-x-4">
-                      {getTransactionBadge(transaction.type)}
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(transaction.date).toLocaleDateString('id-ID')}
-                          {transaction.category && (
-                            <span className="ml-2 px-2 py-1 bg-muted rounded text-xs">
-                              {transaction.category}
-                            </span>
-                          )}
-                        </p>
+              <div className="max-h-full overflow-y-auto">
+                <div className="divide-y">
+                  {transactions.map((transaction) => (
+                    <div key={transaction.id} className="p-4 flex items-center justify-between hover:bg-muted/50">
+                      <div className="flex items-center space-x-4">
+                        {getTransactionBadge(transaction.type)}
+                        <div>
+                          <p className="font-medium">{transaction.description}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(transaction.date).toLocaleDateString('id-ID')}
+                            {transaction.category && (
+                              <span className="ml-2 px-2 py-1 bg-muted rounded text-xs">
+                                {transaction.category}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`font-semibold ${
+                        transaction.type === 'sale' ? 'text-success' : 'text-destructive'
+                      }`}>
+                        {transaction.type === 'sale' ? '+' : '-'}{formatCurrency(transaction.amount)}
                       </div>
                     </div>
-                    <div className={`font-semibold ${
-                      transaction.type === 'sale' ? 'text-success' : 'text-destructive'
-                    }`}>
-                      {transaction.type === 'sale' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-shrink-0 pt-2 border-t">
               <p className="text-sm text-muted-foreground">
                 Halaman {currentPage} dari {totalPages}
               </p>
