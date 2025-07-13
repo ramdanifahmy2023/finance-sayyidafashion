@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MonthYearSelector } from '@/components/ui/month-year-selector';
 import { useDateFilter } from '@/contexts/DateFilterContext';
-import { Plus, Search, X, Calendar, Filter } from 'lucide-react';
+import { Plus, Search, X, Calendar, Filter, Upload, Download } from 'lucide-react';
 import { Sale } from '@/types/sales';
 import { useSales } from '@/hooks/useSales';
 import { SalesForm } from '@/components/sales/SalesForm';
 import { SalesTable } from '@/components/sales/SalesTable';
+import { CSVImportDialog } from '@/components/sales/CSVImportDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatProductType, formatPaymentMethod } from '@/utils/salesFormatters';
@@ -23,6 +24,7 @@ export function SalesManagement() {
     to: null
   });
   const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
+  const [showCSVImport, setShowCSVImport] = useState(false);
   const {
     sales,
     loading,
@@ -129,6 +131,11 @@ export function SalesManagement() {
     setShowForm(false);
     setEditingSale(null);
   };
+
+  const handleCSVImportSuccess = () => {
+    setShowCSVImport(false);
+    // Data will auto-refresh via real-time subscription in useSales
+  };
   if (loading) {
     return <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -144,10 +151,16 @@ export function SalesManagement() {
         </div>
         <div className="flex items-center gap-4">
           <MonthYearSelector selectedDate={selectedDate} onDateChange={setSelectedDate} className="w-64" />
-          <Button onClick={() => setShowForm(true)} className="bg-primary hover:bg-primary-dark">
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Penjualan
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowCSVImport(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Import CSV
+            </Button>
+            <Button onClick={() => setShowForm(true)} className="bg-primary hover:bg-primary-dark">
+              <Plus className="mr-2 h-4 w-4" />
+              Tambah Penjualan
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -228,5 +241,11 @@ export function SalesManagement() {
       </Card>
 
       <SalesTable sales={filteredSales} onEdit={handleEdit} onDelete={deleteSale} onAddFirst={() => setShowForm(true)} />
+      
+      <CSVImportDialog 
+        open={showCSVImport}
+        onOpenChange={setShowCSVImport}
+        onSuccess={handleCSVImportSuccess}
+      />
     </div>;
 }
