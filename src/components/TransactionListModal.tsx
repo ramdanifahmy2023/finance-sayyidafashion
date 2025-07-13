@@ -182,52 +182,57 @@ export function TransactionListModal({ isOpen, onClose }: TransactionListModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Semua Transaksi</DialogTitle>
-        </DialogHeader>
-        
-        <div className="flex flex-col space-y-4 min-h-0 flex-1">
-          {/* Filters */}
-          <div className="flex gap-4 items-center flex-shrink-0">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Cari transaksi..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+      <DialogContent className="max-w-4xl h-[90vh] p-0 gap-0">
+        <div className="flex flex-col h-full">
+          {/* Fixed Header */}
+          <div className="p-6 pb-4 border-b flex-shrink-0">
+            <DialogHeader>
+              <DialogTitle>Semua Transaksi</DialogTitle>
+            </DialogHeader>
+          </div>
+          
+          {/* Fixed Filters */}
+          <div className="px-6 py-4 border-b flex-shrink-0">
+            <div className="flex gap-4 items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Cari transaksi..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-40">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Tipe</SelectItem>
+                  <SelectItem value="sale">Penjualan</SelectItem>
+                  <SelectItem value="expense">Pengeluaran</SelectItem>
+                  <SelectItem value="loss">Kerugian</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Terbaru</SelectItem>
+                  <SelectItem value="oldest">Terlama</SelectItem>
+                  <SelectItem value="amount-high">Jumlah Tertinggi</SelectItem>
+                  <SelectItem value="amount-low">Jumlah Terendah</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-40">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Tipe</SelectItem>
-                <SelectItem value="sale">Penjualan</SelectItem>
-                <SelectItem value="expense">Pengeluaran</SelectItem>
-                <SelectItem value="loss">Kerugian</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Terbaru</SelectItem>
-                <SelectItem value="oldest">Terlama</SelectItem>
-                <SelectItem value="amount-high">Jumlah Tertinggi</SelectItem>
-                <SelectItem value="amount-low">Jumlah Terendah</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
-          {/* Transaction list - Scrollable Area */}
-          <div className="border rounded-lg overflow-hidden flex-1 min-h-0">
+          {/* Scrollable Transaction List */}
+          <div className="flex-1 overflow-hidden">
             {loading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -238,10 +243,10 @@ export function TransactionListModal({ isOpen, onClose }: TransactionListModalPr
                 Tidak ada transaksi ditemukan
               </div>
             ) : (
-              <div className="max-h-full overflow-y-auto">
+              <div className="h-full overflow-y-auto px-6">
                 <div className="divide-y">
                   {transactions.map((transaction) => (
-                    <div key={transaction.id} className="p-4 flex items-center justify-between hover:bg-muted/50">
+                    <div key={transaction.id} className="py-4 flex items-center justify-between hover:bg-muted/50 px-2 rounded-lg">
                       <div className="flex items-center space-x-4">
                         {getTransactionBadge(transaction.type)}
                         <div>
@@ -268,29 +273,31 @@ export function TransactionListModal({ isOpen, onClose }: TransactionListModalPr
             )}
           </div>
 
-          {/* Pagination */}
+          {/* Fixed Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between flex-shrink-0 pt-2 border-t">
-              <p className="text-sm text-muted-foreground">
-                Halaman {currentPage} dari {totalPages}
-              </p>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+            <div className="px-6 py-4 border-t flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Halaman {currentPage} dari {totalPages}
+                </p>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
