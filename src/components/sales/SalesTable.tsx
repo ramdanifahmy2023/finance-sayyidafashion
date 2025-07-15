@@ -1,8 +1,12 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Edit, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Calendar, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { Sale } from '@/types/sales';
 import { formatCurrency, formatProductType, formatPaymentMethod } from '@/utils/salesFormatters';
 interface SalesTableProps {
@@ -17,6 +21,10 @@ export function SalesTable({
   onDelete,
   onAddFirst
 }: SalesTableProps) {
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   if (sales.length === 0) {
     return <Card>
         <CardHeader>
@@ -34,12 +42,50 @@ export function SalesTable({
         </CardContent>
       </Card>;
   }
-  return <Card>
-      <CardHeader>
-        <CardTitle>Riwayat Penjualan</CardTitle>
-        <CardDescription>Semua transaksi penjualan yang tercatat</CardDescription>
+
+  // Calculate pagination
+  const totalPages = Math.ceil(sales.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSales = sales.slice(startIndex, endIndex);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Riwayat Penjualan</CardTitle>
+          <CardDescription>Menampilkan {currentSales.length} dari {sales.length} transaksi</CardDescription>
+        </div>
+        <Button onClick={() => navigate('/transactions')} variant="outline" className="gap-2">
+          <ExternalLink className="h-4 w-4" />
+          Lihat Semua
+        </Button>
       </CardHeader>
       <CardContent>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Tampilkan:</span>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => {
+                setItemsPerPage(Number(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="40">40</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -56,7 +102,8 @@ export function SalesTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sales.map(sale => <TableRow key={sale.id}>
+              {currentSales.map(sale => (
+                <TableRow key={sale.id}>
                   <TableCell>{new Date(sale.transaction_date).toLocaleDateString('id-ID')}</TableCell>
                   <TableCell className="font-medium">{sale.customer_name}</TableCell>
                   <TableCell>
@@ -83,10 +130,44 @@ export function SalesTable({
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>)}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </CardContent>
-    </Card>;
+    </Card>
+  );
 }
