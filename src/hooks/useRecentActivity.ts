@@ -21,10 +21,7 @@ export function useRecentActivity() {
   const fetchRecentActivity = useCallback(async () => {
     if (!user) return;
 
-    // Atur loading hanya jika data belum ada, agar tidak berkedip saat refresh
-    if (activities.length === 0) {
-      setLoading(true);
-    }
+    setLoading(true);
 
     try {
       const range = getMonthRange(selectedDate);
@@ -102,7 +99,7 @@ export function useRecentActivity() {
     } finally {
       setLoading(false);
     }
-  }, [user, selectedDate, getMonthRange, activities.length]);
+  }, [user, selectedDate, getMonthRange]);
 
   useEffect(() => {
     if (user) {
