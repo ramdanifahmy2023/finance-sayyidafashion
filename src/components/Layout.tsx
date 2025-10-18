@@ -21,51 +21,45 @@ interface LayoutProps {
   onLogout: () => void;
 }
 
+// Komponen TabsNavigation dipindahkan ke sini (di luar komponen Layout)
 const TabsNavigation = ({ role }: { role: string | undefined }) => {
   const getGridColsClass = () => {
     switch (role) {
       case 'karyawan': return 'grid-cols-2';
       case 'admin': return 'grid-cols-5';
-      default: return 'grid-cols-7';
+      default: return 'grid-cols-7'; // Manager atau peran default lainnya
     }
   };
 
-  if (role === 'karyawan') {
-    return (
-      <TabsList className={`grid w-full bg-muted/30 p-1 ${getGridColsClass()}`}>
-        <TabsTrigger value="absensi" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-          <Fingerprint className="h-4 w-4" />
-          <span className="hidden sm:inline">Absensi</span>
-        </TabsTrigger>
-        <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-          <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">Pengaturan</span>
-        </TabsTrigger>
-      </TabsList>
-    );
-  }
-
-  if (role === 'admin') {
-    return (
-      <TabsList className={`grid w-full bg-muted/30 p-1 ${getGridColsClass()}`}>
-        <TabsTrigger value="sales"><ShoppingBag className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Penjualan</span></TabsTrigger>
-        <TabsTrigger value="expenses"><CreditCard className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Pengeluaran</span></TabsTrigger>
-        <TabsTrigger value="losses"><TrendingDown className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Kerugian</span></TabsTrigger>
-        <TabsTrigger value="reports"><FileText className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Laporan</span></TabsTrigger>
-        <TabsTrigger value="settings"><Settings className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Pengaturan</span></TabsTrigger>
-      </TabsList>
-    );
-  }
+  const baseTriggerClass = "flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground";
+  const spanClass = "hidden sm:inline";
 
   return (
     <TabsList className={`grid w-full bg-muted/30 p-1 ${getGridColsClass()}`}>
-      <TabsTrigger value="dashboard"><LayoutDashboard className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Dashboard</span></TabsTrigger>
-      <TabsTrigger value="sales"><ShoppingBag className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Penjualan</span></TabsTrigger>
-      <TabsTrigger value="expenses"><CreditCard className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Pengeluaran</span></TabsTrigger>
-      <TabsTrigger value="losses"><TrendingDown className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Kerugian</span></TabsTrigger>
-      <TabsTrigger value="assets"><PiggyBank className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Aset</span></TabsTrigger>
-      <TabsTrigger value="reports"><FileText className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Laporan</span></TabsTrigger>
-      <TabsTrigger value="settings"><Settings className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Pengaturan</span></TabsTrigger>
+      {role === 'karyawan' ? (
+        <>
+          <TabsTrigger value="absensi" className={baseTriggerClass}><Fingerprint className="h-4 w-4" /><span className={spanClass}>Absensi</span></TabsTrigger>
+          <TabsTrigger value="settings" className={baseTriggerClass}><Settings className="h-4 w-4" /><span className={spanClass}>Pengaturan</span></TabsTrigger>
+        </>
+      ) : role === 'admin' ? (
+        <>
+          <TabsTrigger value="sales" className={baseTriggerClass}><ShoppingBag className="h-4 w-4" /><span className={spanClass}>Penjualan</span></TabsTrigger>
+          <TabsTrigger value="expenses" className={baseTriggerClass}><CreditCard className="h-4 w-4" /><span className={spanClass}>Pengeluaran</span></TabsTrigger>
+          <TabsTrigger value="losses" className={baseTriggerClass}><TrendingDown className="h-4 w-4" /><span className={spanClass}>Kerugian</span></TabsTrigger>
+          <TabsTrigger value="reports" className={baseTriggerClass}><FileText className="h-4 w-4" /><span className={spanClass}>Laporan</span></TabsTrigger>
+          <TabsTrigger value="settings" className={baseTriggerClass}><Settings className="h-4 w-4" /><span className={spanClass}>Pengaturan</span></TabsTrigger>
+        </>
+      ) : ( // Manager (default)
+        <>
+          <TabsTrigger value="dashboard" className={baseTriggerClass}><LayoutDashboard className="h-4 w-4" /><span className={spanClass}>Dashboard</span></TabsTrigger>
+          <TabsTrigger value="sales" className={baseTriggerClass}><ShoppingBag className="h-4 w-4" /><span className={spanClass}>Penjualan</span></TabsTrigger>
+          <TabsTrigger value="expenses" className={baseTriggerClass}><CreditCard className="h-4 w-4" /><span className={spanClass}>Pengeluaran</span></TabsTrigger>
+          <TabsTrigger value="losses" className={baseTriggerClass}><TrendingDown className="h-4 w-4" /><span className={spanClass}>Kerugian</span></TabsTrigger>
+          <TabsTrigger value="assets" className={baseTriggerClass}><PiggyBank className="h-4 w-4" /><span className={spanClass}>Aset</span></TabsTrigger>
+          <TabsTrigger value="reports" className={baseTriggerClass}><FileText className="h-4 w-4" /><span className={spanClass}>Laporan</span></TabsTrigger>
+          <TabsTrigger value="settings" className={baseTriggerClass}><Settings className="h-4 w-4" /><span className={spanClass}>Pengaturan</span></TabsTrigger>
+        </>
+      )}
     </TabsList>
   );
 };
@@ -128,43 +122,3 @@ export function Layout({ activeTab, onTabChange, onLogout }: LayoutProps) {
     </div>
   );
 }
-
-// Komponen TabsNavigation dipindahkan ke sini agar tidak menyebabkan render ulang yang tidak perlu
-const TabsNavigation = ({ role }: { role: string | undefined }) => {
-  const getGridColsClass = () => {
-    switch (role) {
-      case 'karyawan': return 'grid-cols-2';
-      case 'admin': return 'grid-cols-5';
-      default: return 'grid-cols-7';
-    }
-  };
-
-  return (
-    <TabsList className={`grid w-full bg-muted/30 p-1 ${getGridColsClass()}`}>
-      {role === 'karyawan' ? (
-        <>
-          <TabsTrigger value="absensi" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Fingerprint className="h-4 w-4" /><span className="hidden sm:inline">Absensi</span></TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Settings className="h-4 w-4" /><span className="hidden sm:inline">Pengaturan</span></TabsTrigger>
-        </>
-      ) : role === 'admin' ? (
-        <>
-          <TabsTrigger value="sales" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="h-4 w-4" /><span className="hidden sm:inline">Penjualan</span></TabsTrigger>
-          <TabsTrigger value="expenses" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><CreditCard className="h-4 w-4" /><span className="hidden sm:inline">Pengeluaran</span></TabsTrigger>
-          <TabsTrigger value="losses" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><TrendingDown className="h-4 w-4" /><span className="hidden sm:inline">Kerugian</span></TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><FileText className="h-4 w-4" /><span className="hidden sm:inline">Laporan</span></TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Settings className="h-4 w-4" /><span className="hidden sm:inline">Pengaturan</span></TabsTrigger>
-        </>
-      ) : ( // Manager
-        <>
-          <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutDashboard className="h-4 w-4" /><span className="hidden sm:inline">Dashboard</span></TabsTrigger>
-          <TabsTrigger value="sales" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="h-4 w-4" /><span className="hidden sm:inline">Penjualan</span></TabsTrigger>
-          <TabsTrigger value="expenses" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><CreditCard className="h-4 w-4" /><span className="hidden sm:inline">Pengeluaran</span></TabsTrigger>
-          <TabsTrigger value="losses" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><TrendingDown className="h-4 w-4" /><span className="hidden sm:inline">Kerugian</span></TabsTrigger>
-          <TabsTrigger value="assets" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><PiggyBank className="h-4 w-4" /><span className="hidden sm:inline">Aset</span></TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><FileText className="h-4 w-4" /><span className="hidden sm:inline">Laporan</span></TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Settings className="h-4 w-4" /><span className="hidden sm:inline">Pengaturan</span></TabsTrigger>
-        </>
-      )}
-    </TabsList>
-  );
-};
