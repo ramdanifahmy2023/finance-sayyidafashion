@@ -125,8 +125,10 @@ export function useDashboard() {
   }, [user, fetchDashboardMetrics, toast]);
 
   useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+    if (user) {
+      loadDashboard();
+    }
+  }, [user, selectedDate]);
 
   // Real-time updates
   useEffect(() => {
@@ -134,15 +136,27 @@ export function useDashboard() {
 
     const channel = supabase
       .channel('dashboard-updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => loadDashboard())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => loadDashboard())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'losses' }, () => loadDashboard())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => {
+        if (user) {
+          loadDashboard();
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => {
+        if (user) {
+          loadDashboard();
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'losses' }, () => {
+        if (user) {
+          loadDashboard();
+        }
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, loadDashboard]);
+  }, [user]);
 
   return {
     metrics,

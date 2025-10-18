@@ -7,17 +7,11 @@ import { DashboardInsights } from '@/components/dashboard/DashboardInsights';
 import { DashboardActivity } from '@/components/dashboard/DashboardActivity';
 import { Card, CardContent } from '@/components/ui/card';
 import { Info } from 'lucide-react';
-import { useEffect } from 'react';
 
 export function Dashboard() {
-  const { metrics, loading, loadDashboard } = useDashboard();
+  const { metrics, loading } = useDashboard();
   const { selectedDate, formatDisplayMonth, isCurrentMonth } = useDateFilter();
 
-  // useEffect ini sekarang hanya memastikan data dimuat ulang saat komponen pertama kali dibuka
-  // atau saat pengguna login/logout. Perubahan tanggal sudah ditangani di dalam hook.
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
   
   if (loading) {
     return <div className="flex items-center justify-center py-12">
