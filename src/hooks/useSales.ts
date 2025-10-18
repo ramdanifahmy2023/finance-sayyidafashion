@@ -63,7 +63,6 @@ export function useSales() {
         title: "Berhasil",
         description: "Penjualan berhasil dihapus"
       });
-      // Data akan refresh otomatis via real-time
     } catch (error: any) {
       console.error('Error deleting sale:', error);
       toast({
@@ -84,7 +83,6 @@ export function useSales() {
   useEffect(() => {
     if (!user) return;
 
-    // Ganti nama variabel 'subscription' menjadi 'channel' agar konsisten
     const channel = supabase
       .channel('sales-changes')
       .on('postgres_changes', 
@@ -96,8 +94,6 @@ export function useSales() {
       )
       .subscribe();
 
-    // **PERBAIKAN UTAMA DI SINI**
-    // Gunakan supabase.removeChannel untuk membersihkan koneksi
     return () => {
       supabase.removeChannel(channel);
     };
