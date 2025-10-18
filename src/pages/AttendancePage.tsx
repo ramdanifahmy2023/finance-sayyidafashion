@@ -40,7 +40,7 @@ export function AttendancePage() {
       
       try {
         const { data, error } = await supabase
-          .from('attendance')
+          .from('attendance' as any)
           .select('*')
           .eq('user_id', user.id)
           .gte('date', startDate)
@@ -48,7 +48,7 @@ export function AttendancePage() {
           .order('date', { ascending: false });
 
         if (error) throw error;
-        setHistory(data as AttendanceRecord[]);
+        setHistory((data as any) as AttendanceRecord[] || []);
       } catch (error) {
         console.error("Error fetching attendance history:", error);
       } finally {

@@ -33,14 +33,14 @@ export function useAttendance() {
     try {
       const todayStr = getTodayDateString();
       const { data, error } = await supabase
-        .from('attendance')
+        .from('attendance' as any)
         .select('*')
         .eq('user_id', user.id)
         .eq('date', todayStr);
 
       if (error) throw error;
       
-      setTodaysRecord(data[0] || null);
+      setTodaysRecord((data as any)?.[0] || null);
     } catch (error: any) {
       console.error("Error fetching today's attendance:", error);
       toast({
@@ -62,19 +62,19 @@ export function useAttendance() {
       const now = new Date().toISOString();
 
       const { data, error } = await supabase
-        .from('attendance')
+        .from('attendance' as any)
         .insert({
           user_id: user.id,
           date: todayStr,
           status: 'hadir',
           clock_in: now,
-        })
+        } as any)
         .select()
         .single();
 
       if (error) throw error;
 
-      setTodaysRecord(data);
+      setTodaysRecord(data as any);
       toast({ title: "Berhasil", description: "Anda berhasil clock in." });
     } catch (error: any) {
       console.error("Error clocking in:", error);
@@ -101,18 +101,18 @@ export function useAttendance() {
       const overtime = workHours > 8 ? parseFloat((workHours - 8).toFixed(2)) : 0;
 
       const { data, error } = await supabase
-        .from('attendance')
+        .from('attendance' as any)
         .update({
           clock_out: now.toISOString(),
           overtime_hours: overtime,
-        })
+        } as any)
         .eq('id', todaysRecord.id)
         .select()
         .single();
       
       if (error) throw error;
 
-      setTodaysRecord(data);
+      setTodaysRecord(data as any);
       toast({ title: "Berhasil", description: "Anda berhasil clock out. Selamat beristirahat!" });
     } catch (error: any) {
       console.error("Error clocking out:", error);

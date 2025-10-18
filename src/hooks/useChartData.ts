@@ -54,7 +54,7 @@ export function useChartData() {
       const [ salesCategoryData, dailySalesData, monthlyTrendResult, expenseBreakdownData ] = await Promise.all([
         supabase.from('sales').select('product_type, selling_price').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
         supabase.from('sales').select('transaction_date, selling_price').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
-        supabase.rpc('get_monthly_trend_data', { user_id_param: user.id, end_date_param: endDate }),
+        (supabase.rpc as any)('get_monthly_trend_data', { user_id_param: user.id, end_date_param: endDate }),
         supabase.from('expenses').select('category, amount').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
       ]);
 

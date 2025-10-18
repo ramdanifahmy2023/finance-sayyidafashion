@@ -36,12 +36,12 @@ export function useFinancialReport() {
       const { startDate, endDate } = getMonthRange(selectedDate);
       
       const [aggregatesResult, trendResult] = await Promise.all([
-        supabase.rpc('get_report_aggregates', {
+        (supabase.rpc as any)('get_report_aggregates', {
           user_id_param: user.id,
           start_date_param: startDate,
           end_date_param: endDate
         }),
-        supabase.rpc('get_monthly_trend_data', {
+        (supabase.rpc as any)('get_monthly_trend_data', {
           user_id_param: user.id,
           end_date_param: endDate
         })
@@ -54,7 +54,7 @@ export function useFinancialReport() {
       
       // Calculate metrics based on user's formula
       const omset = aggregates.total_revenue;
-      const modal = aggregates.total_cogs;
+      const modal = aggregates.total_capital || 0;
       const pengeluaran = aggregates.total_expenses;
       const kerugian = aggregates.total_losses;
       

@@ -30,17 +30,15 @@ export function LossesManagement() {
   };
 
   const filteredLosses = useMemo(() => {
-    // Pastikan `losses` adalah array sebelum memfilter
     if (!Array.isArray(losses)) {
       return [];
     }
     return losses.filter(loss => {
       const searchLower = searchTerm.toLowerCase();
-      // Pemeriksaan keamanan untuk properti yang mungkin null
-      const categoryText = (loss.category || '').replace('_', ' ').toLowerCase();
+      const lossTypeText = (loss.loss_type || '').replace('_', ' ').toLowerCase();
       const descriptionText = (loss.description || '').toLowerCase();
       
-      return descriptionText.includes(searchLower) || categoryText.includes(searchLower);
+      return descriptionText.includes(searchLower) || lossTypeText.includes(searchLower);
     });
   }, [losses, searchTerm]);
 
@@ -48,13 +46,11 @@ export function LossesManagement() {
     return filteredLosses.reduce((sum, loss) => sum + (loss.amount || 0), 0);
   }, [filteredLosses]);
 
-  // **FUNGSI YANG DIPERBAIKI**
-  // Menambahkan pemeriksaan untuk memastikan `category` tidak null/undefined
-  const formatLossCategory = (category: string | null | undefined) => {
-    if (!category) {
-      return 'Tanpa Kategori'; // Teks default jika kategori kosong
+  const formatLossType = (lossType: string | null | undefined) => {
+    if (!lossType) {
+      return 'Tanpa Kategori';
     }
-    return category.replace('_', ' ');
+    return lossType.replace('_', ' ');
   };
 
   if (loading && (!losses || losses.length === 0)) {
@@ -140,8 +136,8 @@ export function LossesManagement() {
                     <TableRow key={loss.id}>
                       <TableCell>{new Date(loss.transaction_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                       <TableCell>
-                        <Badge variant="warning" className="capitalize">
-                          {formatLossCategory(loss.category)}
+                        <Badge variant="destructive" className="capitalize">
+                          {formatLossType(loss.loss_type)}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium text-warning text-right">

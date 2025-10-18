@@ -19,17 +19,17 @@ export function useAuth() {
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('profiles' as any)
         .select('role, full_name, avatar_url')
         .eq('id', userId)
         .single();
       
       if (error) throw error;
-      if (data) setProfile(data as Profile);
+      if (data) setProfile(data as any as Profile);
 
     } catch (error) {
       console.error("Error fetching user profile:", error);
-      setProfile(null); // Reset profil jika gagal
+      setProfile(null);
     }
   }, []);
 
