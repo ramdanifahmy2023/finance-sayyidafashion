@@ -126,7 +126,6 @@ export function useRecentActivity() {
       )
       .subscribe();
 
-    // **PERBAIKAN UTAMA DI SINI**
     return () => {
       supabase.removeChannel(channel);
     };
