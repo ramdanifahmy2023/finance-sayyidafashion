@@ -2,78 +2,66 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-
-interface Loss {
-  id: string;
-  transaction_date: string;
-  loss_type: string;
-  description: string;
-  amount: number;
-  created_at: string;
-}
+import { useDateFilter } from '@/contexts/DateFilterContext';
+import { Loss } from '@/types/loss';
 
 export function useLosses() {
   const [losses, setLosses] = useState<Loss[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedDate, getMonthRange } = useDateFilter();
 
   const fetchLosses = useCallback(async () => {
+    if (!user) return [];
+
     try {
+      const { startDate, endDate } = getMonthRange(selectedDate);
       const { data, error } = await supabase
         .from('losses')
         .select('*')
+        .eq('user_id', user.id)
+        .gte('transaction_date', startDate)
+        .lte('transaction_date', endDate)
+        .order('transaction_date', { ascending: false })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     } catch (error) {
       console.error('Error fetching losses:', error);
+      toast({
+        title: "Error",
+        description: "Gagal mengambil data kerugian.",
+        variant: "destructive"
+      });
       return [];
     }
-  }, []);
+  }, [user, selectedDate, getMonthRange, toast]);
 
   const loadLosses = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchLosses();
-      setLosses(data || []);
+      setLosses(data);
     } catch (error) {
       console.error('Error loading losses:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load losses data",
-        variant: "destructive"
-      });
+      setLosses([]); // Pastikan state direset jika terjadi error
     } finally {
       setLoading(false);
     }
-  }, [fetchLosses, toast]);
+  }, [fetchLosses]);
 
   const deleteLoss = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this loss?')) return;
+    if (!confirm('Apakah Anda yakin ingin menghapus data kerugian ini?')) return;
 
     try {
-      const { error } = await supabase
-        .from('losses')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('losses').delete().eq('id', id);
       if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Loss deleted successfully"
-      });
-      
-      await loadLosses();
+      toast({ title: "Berhasil", description: "Data kerugian berhasil dihapus" });
     } catch (error: any) {
       console.error('Error deleting loss:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete loss",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: error.message || "Gagal menghapus data kerugian", variant: "destructive" });
     }
   };
 
@@ -83,30 +71,17 @@ export function useLosses() {
     }
   }, [user, loadLosses]);
 
-  // Real-time updates
   useEffect(() => {
     if (!user) return;
-
-    const subscription = supabase
+    const channel = supabase
       .channel('losses-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'losses' },
-        (payload) => {
-          console.log('Loss change received!', payload);
-          loadLosses();
-        }
+        { event: '*', schema: 'public', table: 'losses', filter: `user_id=eq.${user.id}` },
+        () => loadLosses()
       )
       .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => { supabase.removeChannel(channel) };
   }, [user, loadLosses]);
 
-  return {
-    losses,
-    loading,
-    loadLosses,
-    deleteLoss
-  };
+  return { losses, loading, deleteLoss };
 }
