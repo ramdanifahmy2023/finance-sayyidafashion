@@ -1,33 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/components/LoginPage';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-const getDefaultTab = (role: string | undefined) => {
-  switch (role) {
-    case 'karyawan':
-      return 'absensi';
-    case 'admin':
-      return 'sales';
-    case 'manager':
-    default:
-      return 'dashboard';
-  }
-};
-
 const Index = () => {
-  const { user, loading, signIn, signOut, role } = useAuth();
+  const { user, loading, signIn, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (role) {
-      setActiveTab(getDefaultTab(role));
-    }
-  }, [role]);
 
   const handleLogin = async (email: string, password: string) => {
     setAuthLoading(true);

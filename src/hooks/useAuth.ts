@@ -4,14 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Definisikan tipe untuk data profil
 interface Profile {
-  role: 'manager' | 'admin' | 'karyawan';
   full_name?: string;
   avatar_url?: string;
 }
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null); // State untuk menyimpan profil
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +19,7 @@ export function useAuth() {
     try {
       const { data, error } = await supabase
         .from('profiles' as any)
-        .select('role, full_name, avatar_url')
+        .select('full_name, avatar_url')
         .eq('id', userId)
         .single();
       
@@ -88,8 +87,7 @@ export function useAuth() {
 
   return {
     user,
-    profile, // Kembalikan profil pengguna
-    role: profile?.role, // Kembalikan peran untuk kemudahan akses
+    profile,
     session,
     loading,
     signIn,

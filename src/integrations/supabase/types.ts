@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -107,6 +107,24 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           created_at: string | null
@@ -158,24 +176,48 @@ export type Database = {
     }
     Functions: {
       get_dashboard_metrics: {
-        Args: { user_id_param: string; start_date: string; end_date: string }
+        Args: { end_date: string; start_date: string; user_id_param: string }
         Returns: {
-          total_revenue: number
+          gross_margin: number
+          marketplace_fees: number
+          net_profit: number
           total_capital: number
           total_expenses: number
           total_losses: number
-          gross_margin: number
-          net_profit: number
+          total_revenue: number
           transaction_count: number
+        }[]
+      }
+      get_monthly_trend_data: {
+        Args: { end_date_param: string; user_id_param: string }
+        Returns: {
+          capital: number
+          expenses: number
+          losses: number
           marketplace_fees: number
+          month: string
+          revenue: number
+        }[]
+      }
+      get_report_aggregates: {
+        Args: {
+          end_date_param: string
+          start_date_param: string
+          user_id_param: string
+        }
+        Returns: {
+          total_cogs: number
+          total_expenses: number
+          total_losses: number
+          total_revenue: number
         }[]
       }
       get_top_products: {
         Args: {
-          user_id_param: string
-          start_date: string
           end_date: string
           limit_count?: number
+          start_date: string
+          user_id_param: string
         }
         Returns: {
           product_name: string
