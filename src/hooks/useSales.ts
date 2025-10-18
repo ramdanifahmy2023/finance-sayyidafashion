@@ -14,11 +14,13 @@ export function useSales() {
 
   // Data fetching with date filter
   const fetchSales = useCallback(async () => {
+    if (!user) return []; // Tambahkan pengecekan user di sini
     try {
       const range = getMonthRange(selectedDate);
       const { data, error } = await supabase
         .from('sales')
         .select('*')
+        .eq('user_id', user.id) // Pastikan user.id digunakan
         .gte('transaction_date', range.startDate)
         .lte('transaction_date', range.endDate)
         .order('transaction_date', { ascending: false })
@@ -30,7 +32,7 @@ export function useSales() {
       console.error('Error fetching sales:', error);
       return [];
     }
-  }, [selectedDate.getFullYear(), selectedDate.getMonth(), getMonthRange]);
+  }, [user, selectedDate, getMonthRange]); // dependensi disesuaikan
 
   const loadSales = useCallback(async () => {
     setLoading(true);
@@ -75,15 +77,12 @@ export function useSales() {
       });
     }
   };
-
-  // Create stable date key to prevent unnecessary re-renders
-  const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
   
   useEffect(() => {
     if (user) {
       loadSales();
     }
-  }, [user, dateKey, loadSales]);
+  }, [user, loadSales]); // Cukup loadSales karena sudah mencakup dependensi lain
 
   // Real-time updates using specified pattern
   useEffect(() => {
@@ -104,7 +103,7 @@ export function useSales() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user]);
+  }, [user, loadSales]); // Tambahkan loadSales sebagai dependensi
 
   return {
     sales,
