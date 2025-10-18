@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -26,13 +27,13 @@ interface DashboardMetrics {
 }
 
 export function useDashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   const { selectedDate, getMonthRange } = useDateFilter();
 
-  const fetchDashboardMetrics = useCallback(async (userId: string) => {
+  const fetchDashboardMetrics = useCallback(async () => {
+    if (!user) return null;
+
     try {
       const currentMonthRange = getMonthRange(selectedDate);
       const prevMonthDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
@@ -40,17 +41,17 @@ export function useDashboard() {
 
       const [currentMetricsResult, prevMetricsResult, topProductsResult] = await Promise.all([
         supabase.rpc('get_dashboard_metrics', {
-          user_id_param: userId,
+          user_id_param: user.id,
           start_date: currentMonthRange.startDate,
           end_date: currentMonthRange.endDate
         }),
         supabase.rpc('get_dashboard_metrics', {
-          user_id_param: userId,
+          user_id_param: user.id,
           start_date: prevMonthRange.startDate,
           end_date: prevMonthRange.endDate
         }),
         supabase.rpc('get_top_products', {
-          user_id_param: userId,
+          user_id_param: user.id,
           start_date: currentMonthRange.startDate,
           end_date: currentMonthRange.endDate,
           limit_count: 4
@@ -101,68 +102,22 @@ export function useDashboard() {
 
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
-      throw error;
-    }
-  }, [selectedDate, getMonthRange]);
-
-  const loadDashboard = useCallback(async () => {
-    if (!user) {
-        setLoading(false);
-        return;
-    };
-
-    setLoading(true);
-    try {
-      const dashboardMetrics = await fetchDashboardMetrics(user.id);
-      setMetrics(dashboardMetrics);
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
       toast({
         title: "Error",
         description: "Gagal memuat data dashboard",
         variant: "destructive"
       });
-      setMetrics(null);
-    } finally {
-      setLoading(false);
+      // useQuery akan menangani error ini
+      throw error;
     }
-  }, [user, fetchDashboardMetrics, toast]);
+  }, [user, selectedDate, getMonthRange, toast]);
 
-  useEffect(() => {
-    if (user) {
-      loadDashboard();
-    } else if (!user) {
-      setLoading(false);
-    }
-  }, [user, selectedDate, loadDashboard]);
-
-  // Real-time updates
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('dashboard-updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => {
-        if (user) {
-          loadDashboard();
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => {
-        if (user) {
-          loadDashboard();
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'losses' }, () => {
-        if (user) {
-          loadDashboard();
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, loadDashboard]);
+  const { data: metrics, isLoading: loading, refetch: loadDashboard } = useQuery<DashboardMetrics | null>({
+    queryKey: ['dashboardMetrics', user?.id, selectedDate.toISOString().slice(0, 7)],
+    queryFn: fetchDashboardMetrics,
+    enabled: !!user, // Hanya jalankan query jika user sudah login
+    staleTime: 5 * 60 * 1000, // Cache data selama 5 menit
+  });
 
   return {
     metrics,
@@ -170,4 +125,3 @@ export function useDashboard() {
     loadDashboard
   };
 }
-
