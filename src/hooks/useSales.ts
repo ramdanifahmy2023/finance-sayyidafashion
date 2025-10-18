@@ -12,14 +12,13 @@ export function useSales() {
   const { toast } = useToast();
   const { selectedDate, getMonthRange } = useDateFilter();
 
+  // Data fetching with date filter
   const fetchSales = useCallback(async () => {
-    if (!user) return [];
     try {
       const range = getMonthRange(selectedDate);
       const { data, error } = await supabase
         .from('sales')
         .select('*')
-        .eq('user_id', user.id)
         .gte('transaction_date', range.startDate)
         .lte('transaction_date', range.endDate)
         .order('transaction_date', { ascending: false })
@@ -31,13 +30,9 @@ export function useSales() {
       console.error('Error fetching sales:', error);
       return [];
     }
-  }, [user, selectedDate, getMonthRange]);
+  }, [selectedDate.getFullYear(), selectedDate.getMonth(), getMonthRange]);
 
   const loadSales = useCallback(async () => {
-    if (!user) {
-        setLoading(false);
-        return;
-    }
     setLoading(true);
     try {
       const data = await fetchSales();
@@ -49,14 +44,14 @@ export function useSales() {
         description: "Gagal memuat data penjualan",
         variant: "destructive"
       });
-      setSales([]);
     } finally {
       setLoading(false);
     }
-  }, [fetchSales, toast, user]);
+  }, [fetchSales, toast]);
 
   const deleteSale = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus penjualan ini?')) return;
+
     try {
       const { error } = await supabase
         .from('sales')
@@ -64,10 +59,13 @@ export function useSales() {
         .eq('id', id);
 
       if (error) throw error;
+
       toast({
         title: "Berhasil",
         description: "Penjualan berhasil dihapus"
       });
+      
+      await loadSales();
     } catch (error: any) {
       console.error('Error deleting sale:', error);
       toast({
@@ -78,33 +76,35 @@ export function useSales() {
     }
   };
 
+  // Create stable date key to prevent unnecessary re-renders
+  const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
+  
   useEffect(() => {
     if (user) {
       loadSales();
-    } else {
-        setLoading(false);
     }
-  }, [user, loadSales]);
+  }, [user, dateKey, loadSales]);
 
-  // Real-time updates
+  // Real-time updates using specified pattern
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
+    const subscription = supabase
       .channel('sales-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'sales', filter: `user_id=eq.${user.id}` },
+        { event: '*', schema: 'public', table: 'sales' },
         (payload) => {
-          console.log('Perubahan data penjualan terdeteksi!', payload);
+          console.log('Change received!', payload);
+          // Refresh sales data on any change
           loadSales();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      subscription.unsubscribe();
     };
-  }, [user, loadSales]);
+  }, [user]);
 
   return {
     sales,

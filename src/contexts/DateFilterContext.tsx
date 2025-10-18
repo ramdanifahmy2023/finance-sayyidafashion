@@ -23,7 +23,6 @@ interface DateFilterProviderProps {
 export const DateFilterProvider = ({ children }: DateFilterProviderProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Bungkus semua fungsi dengan useCallback agar tidak dibuat ulang setiap render
   const getMonthRange = useCallback((date: Date): DateRange => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -46,7 +45,7 @@ export const DateFilterProvider = ({ children }: DateFilterProviderProps) => {
     const now = new Date();
     return selectedDate.getFullYear() === now.getFullYear() && 
            selectedDate.getMonth() === now.getMonth();
-  }, [selectedDate]); // Dependensi ditambahkan
+  }, [selectedDate.getFullYear(), selectedDate.getMonth()]);
 
   const formatDisplayMonth = useCallback((date: Date) => {
     const monthNames = [
@@ -56,7 +55,6 @@ export const DateFilterProvider = ({ children }: DateFilterProviderProps) => {
     return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
   }, []);
 
-  // useMemo sekarang akan bekerja dengan benar karena dependensinya stabil
   const value = useMemo(() => ({
     selectedDate,
     setSelectedDate,
@@ -64,7 +62,7 @@ export const DateFilterProvider = ({ children }: DateFilterProviderProps) => {
     getPreviousMonthRange,
     isCurrentMonth,
     formatDisplayMonth
-  }), [selectedDate, getMonthRange, getPreviousMonthRange, isCurrentMonth, formatDisplayMonth]);
+  }), [selectedDate, setSelectedDate, getMonthRange, getPreviousMonthRange, isCurrentMonth, formatDisplayMonth]);
 
   return (
     <DateFilterContext.Provider value={value}>

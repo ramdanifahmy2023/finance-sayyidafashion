@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,11 +22,10 @@ export function useRecentActivity() {
   const fetchRecentActivity = useCallback(async () => {
     if (!user) return;
 
-    setLoading(true);
-
     try {
       const range = getMonthRange(selectedDate);
       
+      // Fetch recent sales, expenses, and losses
       const [salesResult, expensesResult, lossesResult] = await Promise.all([
         supabase
           .from('sales')
@@ -57,6 +57,7 @@ export function useRecentActivity() {
 
       const recentActivities: RecentActivity[] = [];
 
+      // Process sales
       salesResult.data?.forEach(sale => {
         recentActivities.push({
           id: sale.id,
@@ -67,6 +68,7 @@ export function useRecentActivity() {
         });
       });
 
+      // Process expenses
       expensesResult.data?.forEach(expense => {
         recentActivities.push({
           id: expense.id,
@@ -78,6 +80,7 @@ export function useRecentActivity() {
         });
       });
 
+      // Process losses
       lossesResult.data?.forEach(loss => {
         recentActivities.push({
           id: loss.id,
@@ -89,6 +92,7 @@ export function useRecentActivity() {
         });
       });
 
+      // Sort by timestamp and take top 5
       const sortedActivities = recentActivities
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
         .slice(0, 5);
@@ -102,32 +106,45 @@ export function useRecentActivity() {
   }, [user, selectedDate, getMonthRange]);
 
   useEffect(() => {
-    if (user) {
-      fetchRecentActivity();
-    }
-  }, [user, fetchRecentActivity]);
+    fetchRecentActivity();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchRecentActivity, 30000);
+    
+    return () => clearInterval(interval);
+  }, [fetchRecentActivity]);
 
+  // Real-time updates
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
+    const subscription = supabase
       .channel('recent-activity-updates')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'sales', filter: `user_id=eq.${user.id}` },
-        () => fetchRecentActivity()
+        { event: '*', schema: 'public', table: 'sales' },
+        () => {
+          console.log('Sales data changed, refreshing activity');
+          fetchRecentActivity();
+        }
       )
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'expenses', filter: `user_id=eq.${user.id}` },
-        () => fetchRecentActivity()
+        { event: '*', schema: 'public', table: 'expenses' },
+        () => {
+          console.log('Expenses data changed, refreshing activity');
+          fetchRecentActivity();
+        }
       )
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'losses', filter: `user_id=eq.${user.id}` },
-        () => fetchRecentActivity()
+        { event: '*', schema: 'public', table: 'losses' },
+        () => {
+          console.log('Losses data changed, refreshing activity');
+          fetchRecentActivity();
+        }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      subscription.unsubscribe();
     };
   }, [user, fetchRecentActivity]);
 

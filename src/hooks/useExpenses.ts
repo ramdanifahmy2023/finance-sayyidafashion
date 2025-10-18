@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useDateFilter } from '@/contexts/DateFilterContext'; // Import DateFilter
 
 interface Expense {
   id: string;
@@ -18,20 +17,12 @@ export function useExpenses() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedDate, getMonthRange } = useDateFilter(); // Gunakan date context
 
   const fetchExpenses = useCallback(async () => {
-    if (!user) return [];
-
     try {
-      const { startDate, endDate } = getMonthRange(selectedDate);
       const { data, error } = await supabase
         .from('expenses')
         .select('*')
-        .eq('user_id', user.id)
-        .gte('transaction_date', startDate)
-        .lte('transaction_date', endDate)
-        .order('transaction_date', { ascending: false })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -40,7 +31,7 @@ export function useExpenses() {
       console.error('Error fetching expenses:', error);
       return [];
     }
-  }, [user, selectedDate, getMonthRange]);
+  }, []);
 
   const loadExpenses = useCallback(async () => {
     setLoading(true);
@@ -51,7 +42,7 @@ export function useExpenses() {
       console.error('Error loading expenses:', error);
       toast({
         title: "Error",
-        description: "Gagal memuat data pengeluaran",
+        description: "Failed to load expenses data",
         variant: "destructive"
       });
     } finally {
@@ -60,7 +51,7 @@ export function useExpenses() {
   }, [fetchExpenses, toast]);
 
   const deleteExpense = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus pengeluaran ini?')) return;
+    if (!confirm('Are you sure you want to delete this expense?')) return;
 
     try {
       const { error } = await supabase
@@ -71,15 +62,16 @@ export function useExpenses() {
       if (error) throw error;
 
       toast({
-        title: "Berhasil",
-        description: "Pengeluaran berhasil dihapus"
+        title: "Success",
+        description: "Expense deleted successfully"
       });
       
+      await loadExpenses();
     } catch (error: any) {
       console.error('Error deleting expense:', error);
       toast({
         title: "Error",
-        description: error.message || "Gagal menghapus pengeluaran",
+        description: error.message || "Failed to delete expense",
         variant: "destructive"
       });
     }
@@ -95,10 +87,10 @@ export function useExpenses() {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
+    const subscription = supabase
       .channel('expenses-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'expenses', filter: `user_id=eq.${user.id}` },
+        { event: '*', schema: 'public', table: 'expenses' },
         (payload) => {
           console.log('Expense change received!', payload);
           loadExpenses();
@@ -107,7 +99,7 @@ export function useExpenses() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      subscription.unsubscribe();
     };
   }, [user, loadExpenses]);
 
