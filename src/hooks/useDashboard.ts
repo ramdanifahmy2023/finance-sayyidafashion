@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useDateFilter } from '@/contexts/DateFilterContext';
 
 interface DashboardMetrics {
   totalRevenue: number;
@@ -29,34 +30,29 @@ export function useDashboard() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedDate, getMonthRange } = useDateFilter();
 
-  const fetchDashboardMetrics = useCallback(async (userId: string, selectedDate?: Date) => {
+  const fetchDashboardMetrics = useCallback(async (userId: string) => {
     try {
-      // Use selected date or current month
-      const targetDate = selectedDate || new Date();
-      const firstDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-      const lastDay = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
-      
-      // Get previous month date range
-      const prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, 1);
-      const prevMonthEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
+      const currentMonthRange = getMonthRange(selectedDate);
+      const prevMonthDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
+      const prevMonthRange = getMonthRange(prevMonthDate);
 
-      // Fetch current month metrics using optimized database function
       const [currentMetricsResult, prevMetricsResult, topProductsResult] = await Promise.all([
         supabase.rpc('get_dashboard_metrics', {
           user_id_param: userId,
-          start_date: firstDay.toISOString().split('T')[0],
-          end_date: lastDay.toISOString().split('T')[0]
+          start_date: currentMonthRange.startDate,
+          end_date: currentMonthRange.endDate
         }),
         supabase.rpc('get_dashboard_metrics', {
           user_id_param: userId,
-          start_date: prevMonth.toISOString().split('T')[0],
-          end_date: prevMonthEnd.toISOString().split('T')[0]
+          start_date: prevMonthRange.startDate,
+          end_date: prevMonthRange.endDate
         }),
         supabase.rpc('get_top_products', {
           user_id_param: userId,
-          start_date: firstDay.toISOString().split('T')[0],
-          end_date: lastDay.toISOString().split('T')[0],
+          start_date: currentMonthRange.startDate,
+          end_date: currentMonthRange.endDate,
           limit_count: 4
         })
       ]);
@@ -66,20 +62,12 @@ export function useDashboard() {
       if (topProductsResult.error) throw topProductsResult.error;
 
       const currentMetrics = currentMetricsResult.data?.[0] || {
-        total_revenue: 0,
-        total_capital: 0,
-        total_expenses: 0,
-        total_losses: 0,
-        gross_margin: 0,
-        net_profit: 0,
-        transaction_count: 0,
-        marketplace_fees: 0
+        total_revenue: 0, total_capital: 0, total_expenses: 0, total_losses: 0,
+        gross_margin: 0, net_profit: 0, transaction_count: 0, marketplace_fees: 0
       };
 
       const prevMetrics = prevMetricsResult.data?.[0] || {
-        total_revenue: 0,
-        total_expenses: 0,
-        net_profit: 0
+        total_revenue: 0, total_expenses: 0, net_profit: 0
       };
 
       const topProducts = (topProductsResult.data || []).map((product: any) => ({
@@ -88,16 +76,15 @@ export function useDashboard() {
         revenue: Number(product.total_revenue)
       }));
 
-      // Calculate growth percentages
       const revenueGrowth = prevMetrics.total_revenue > 0 
         ? ((Number(currentMetrics.total_revenue) - Number(prevMetrics.total_revenue)) / Number(prevMetrics.total_revenue)) * 100 
-        : 0;
+        : (Number(currentMetrics.total_revenue) > 0 ? 100 : 0);
       const expenseGrowth = prevMetrics.total_expenses > 0 
         ? ((Number(currentMetrics.total_expenses) - Number(prevMetrics.total_expenses)) / Number(prevMetrics.total_expenses)) * 100 
-        : 0;
-      const profitGrowth = prevMetrics.net_profit > 0 
-        ? ((Number(currentMetrics.net_profit) - Number(prevMetrics.net_profit)) / Number(prevMetrics.net_profit)) * 100 
-        : 0;
+        : (Number(currentMetrics.total_expenses) > 0 ? 100 : 0);
+      const profitGrowth = Math.abs(prevMetrics.net_profit) > 0
+        ? ((Number(currentMetrics.net_profit) - Number(prevMetrics.net_profit)) / Math.abs(prevMetrics.net_profit)) * 100
+        : (Number(currentMetrics.net_profit) > 0 ? 100 : 0);
 
       return {
         totalRevenue: Number(currentMetrics.total_revenue),
@@ -108,11 +95,7 @@ export function useDashboard() {
         netProfit: Number(currentMetrics.net_profit),
         totalTransactions: Number(currentMetrics.transaction_count),
         marketplaceFees: Number(currentMetrics.marketplace_fees),
-        monthlyGrowth: {
-          revenue: revenueGrowth,
-          expenses: expenseGrowth,
-          profit: profitGrowth
-        },
+        monthlyGrowth: { revenue: revenueGrowth, expenses: expenseGrowth, profit: profitGrowth },
         topProducts
       };
 
@@ -120,14 +103,14 @@ export function useDashboard() {
       console.error('Error fetching dashboard metrics:', error);
       throw error;
     }
-  }, []);
+  }, [selectedDate, getMonthRange]);
 
-  const loadDashboard = useCallback(async (selectedDate?: Date) => {
+  const loadDashboard = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
     try {
-      const dashboardMetrics = await fetchDashboardMetrics(user.id, selectedDate);
+      const dashboardMetrics = await fetchDashboardMetrics(user.id);
       setMetrics(dashboardMetrics);
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -142,44 +125,24 @@ export function useDashboard() {
   }, [user, fetchDashboardMetrics, toast]);
 
   useEffect(() => {
-    if (user) {
-      loadDashboard();
-    }
-  }, [user]);
+    loadDashboard();
+  }, [loadDashboard]);
 
   // Real-time updates
   useEffect(() => {
     if (!user) return;
 
-    const subscription = supabase
+    const channel = supabase
       .channel('dashboard-updates')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'sales' },
-        () => {
-          console.log('Sales data changed, refreshing dashboard');
-          loadDashboard();
-        }
-      )
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'expenses' },
-        () => {
-          console.log('Expenses data changed, refreshing dashboard');
-          loadDashboard();
-        }
-      )
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'losses' },
-        () => {
-          console.log('Losses data changed, refreshing dashboard');
-          loadDashboard();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => loadDashboard())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => loadDashboard())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'losses' }, () => loadDashboard())
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, loadDashboard]);
 
   return {
     metrics,
