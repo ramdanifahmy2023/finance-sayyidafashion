@@ -106,7 +106,10 @@ export function useDashboard() {
   }, [selectedDate, getMonthRange]);
 
   const loadDashboard = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+        setLoading(false);
+        return;
+    };
 
     setLoading(true);
     try {
@@ -119,6 +122,7 @@ export function useDashboard() {
         description: "Gagal memuat data dashboard",
         variant: "destructive"
       });
+      setMetrics(null);
     } finally {
       setLoading(false);
     }
@@ -127,8 +131,10 @@ export function useDashboard() {
   useEffect(() => {
     if (user) {
       loadDashboard();
+    } else if (!user) {
+      setLoading(false);
     }
-  }, [user, selectedDate]);
+  }, [user, selectedDate, loadDashboard]);
 
   // Real-time updates
   useEffect(() => {
@@ -156,7 +162,7 @@ export function useDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, loadDashboard]);
 
   return {
     metrics,
@@ -164,3 +170,4 @@ export function useDashboard() {
     loadDashboard
   };
 }
+
