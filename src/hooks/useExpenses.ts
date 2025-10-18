@@ -75,7 +75,6 @@ export function useExpenses() {
         description: "Pengeluaran berhasil dihapus"
       });
       
-      // Data will refresh automatically via real-time subscription
     } catch (error: any) {
       console.error('Error deleting expense:', error);
       toast({
