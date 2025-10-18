@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, CreditCard, Target, ArrowUp, ArrowDown } from 'lucide-react';
+
 interface MetricsData {
   totalRevenue: number;
   totalCapital: number;
@@ -14,10 +15,12 @@ interface MetricsData {
     profit: number;
   };
 }
+
 interface DashboardMetricsProps {
   metrics: MetricsData | null;
   loading: boolean;
 }
+
 export function DashboardMetrics({
   metrics,
   loading
@@ -30,13 +33,15 @@ export function DashboardMetrics({
       maximumFractionDigits: 0
     }).format(amount);
   };
+
   const formatGrowth = (percentage: number) => {
     const isPositive = percentage >= 0;
     return <div className={`flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
         {isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-        <span className="text-xs font-medium">{Math.abs(percentage).toFixed(1)}%</span>
+        <span className="text-xs font-medium">{Math.abs(percentage).toFixed(1)}% vs bulan lalu</span>
       </div>;
   };
+
   if (loading) {
     return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {Array.from({
@@ -53,21 +58,24 @@ export function DashboardMetrics({
           </Card>)}
       </div>;
   }
+
   if (!metrics) {
     return <div className="text-center py-12">
         <p className="text-muted-foreground">Tidak ada data tersedia untuk periode ini.</p>
       </div>;
   }
+
   const grossMarginPercentage = metrics.totalRevenue > 0 ? (metrics.grossMargin / metrics.totalRevenue * 100).toFixed(1) : '0.0';
+
   return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       {/* Total Revenue */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium text-muted-foreground text-lg">Total Omset</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-sm">Total Omset</CardTitle>
           <DollarSign className="h-4 w-4 text-revenue" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalRevenue)}</div>
+          <div className="text-2xl font-bold text-foreground">{formatCurrency(metrics.totalRevenue)}</div>
           {formatGrowth(metrics.monthlyGrowth.revenue)}
         </CardContent>
       </Card>
@@ -75,23 +83,23 @@ export function DashboardMetrics({
       {/* Total Capital */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-muted-foreground font-medium text-lg">Total Modal</CardTitle>
+          <CardTitle className="text-muted-foreground font-medium text-sm">Total Modal</CardTitle>
           <ShoppingCart className="h-4 w-4 text-secondary" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalCapital)}</div>
-          <p className="text-xs text-muted-foreground mt-1">Biaya pembelian</p>
+          <div className="text-2xl font-bold text-foreground">{formatCurrency(metrics.totalCapital)}</div>
+          <p className="text-xs text-muted-foreground mt-1">Biaya pembelian produk</p>
         </CardContent>
       </Card>
 
       {/* Total Expenses */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium text-muted-foreground text-lg">Total Pengeluaran</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-sm">Total Pengeluaran</CardTitle>
           <CreditCard className="h-4 w-4 text-expense" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalExpenses)}</div>
+          <div className="text-2xl font-bold text-foreground">{formatCurrency(metrics.totalExpenses)}</div>
           {formatGrowth(metrics.monthlyGrowth.expenses)}
         </CardContent>
       </Card>
@@ -99,25 +107,25 @@ export function DashboardMetrics({
       {/* Total Losses */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium text-muted-foreground text-lg">Total Kerugian</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-sm">Total Kerugian</CardTitle>
           <TrendingDown className="h-4 w-4 text-loss" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.totalLosses)}</div>
-          <p className="text-xs text-muted-foreground mt-1">Minimalkan kerugian</p>
+          <div className="text-2xl font-bold text-foreground">{formatCurrency(metrics.totalLosses)}</div>
+          <p className="text-xs text-muted-foreground mt-1">Minimalkan kerugian tak terduga</p>
         </CardContent>
       </Card>
 
       {/* Gross Margin */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium text-muted-foreground text-lg">Gross Margin</CardTitle>
+          <CardTitle className="font-medium text-muted-foreground text-sm">Gross Margin</CardTitle>
           <Target className="h-4 w-4 text-profit" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-foreground">{formatCurrency(metrics.grossMargin)}</div>
+          <div className="text-2xl font-bold text-foreground">{formatCurrency(metrics.grossMargin)}</div>
           <Badge variant="secondary" className="text-xs bg-success-light text-success-foreground">
-            {grossMarginPercentage}%
+            {grossMarginPercentage}% dari Omset
           </Badge>
         </CardContent>
       </Card>
@@ -125,11 +133,11 @@ export function DashboardMetrics({
       {/* Net Profit */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-muted-foreground font-medium text-lg">Laba Bersih</CardTitle>
+          <CardTitle className="text-muted-foreground font-medium text-sm">Margin Kotor</CardTitle>
           <TrendingUp className="h-4 w-4 text-profit" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-profit">{formatCurrency(metrics.netProfit)}</div>
+          <div className="text-2xl font-bold text-profit">{formatCurrency(metrics.netProfit)}</div>
           {formatGrowth(metrics.monthlyGrowth.profit)}
         </CardContent>
       </Card>
