@@ -86,7 +86,7 @@ export function useChartData() {
       setDailySales(dailySalesChartData);
       
       // 3. Process Monthly Trend
-      const monthlyTrendChartData = (monthlyTrendResult.data || []).map(d => {
+      const monthlyTrendChartData = (monthlyTrendResult.data || []).map((d: any) => {
           const grossMargin = d.revenue - d.capital - d.marketplace_fees;
           const netProfit = grossMargin - d.expenses - d.losses;
           return {
