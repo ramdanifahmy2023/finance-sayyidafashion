@@ -53,13 +53,18 @@ export function useAuth() {
 
     // Cek sesi yang sudah ada saat pertama kali memuat
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        setSession(session);
-        const currentUser = session.user;
-        setUser(currentUser);
-        await fetchProfile(currentUser.id);
+      try {
+        if (session) {
+          setSession(session);
+          const currentUser = session.user;
+          setUser(currentUser);
+          await fetchProfile(currentUser.id);
+        }
+      } catch (e) {
+        console.error("Error during initial session fetch:", e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
