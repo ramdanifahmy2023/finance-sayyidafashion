@@ -4,9 +4,11 @@ import { TrendingUp } from 'lucide-react';
 
 interface MonthlyTrendData {
   month: string;
-  revenue: number;
-  expenses: number;
-  profit: number;
+  omset: number;
+  pengeluaran: number;
+  kerugian: number;
+  grossMargin: number;
+  labaBersih: number;
 }
 
 interface MonthlyTrendChartProps {
@@ -40,26 +42,25 @@ export function MonthlyTrendChart({ data, loading }: MonthlyTrendChartProps) {
     return null;
   };
 
-  const CustomLegend = (props: any) => {
-    const { payload } = props;
-    return (
-      <div className="flex justify-center gap-6 mt-4">
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="text-sm text-muted-foreground">
-              {entry.value === 'revenue' ? 'Pendapatan' : 
-               entry.value === 'expenses' ? 'Pengeluaran' : 'Keuntungan'}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const legendPayload = [
+    { value: 'Omset', color: 'hsl(var(--primary))' },
+    { value: 'Gross Margin', color: 'hsl(var(--info))' },
+    { value: 'Laba Bersih', color: 'hsl(var(--success))' },
+    { value: 'Pengeluaran', color: 'hsl(var(--secondary))' },
+    { value: 'Kerugian', color: 'hsl(var(--warning))' },
+  ];
 
+  const CustomLegend = () => (
+    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
+      {legendPayload.map((entry, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-sm text-muted-foreground">{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+  
   if (loading) {
     return (
       <Card className="bg-gradient-card border-border shadow-soft">
@@ -83,61 +84,28 @@ export function MonthlyTrendChart({ data, loading }: MonthlyTrendChartProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
-          Tren Bulanan (6 Bulan Terakhir)
+          Tren Keuangan Bulanan
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="month" 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => {
-                  if (value >= 1000000) {
-                    return `${(value / 1000000).toFixed(1)}M`;
-                  } else if (value >= 1000) {
-                    return `${(value / 1000).toFixed(0)}K`;
-                  }
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value: number) => {
+                  if (value >= 1000000) return `${(value / 1000000).toFixed(0)}Jt`;
+                  if (value >= 1000) return `${(value / 1000).toFixed(0)}rb`;
                   return value.toString();
                 }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend content={<CustomLegend />} />
-              <Line 
-                type="monotone" 
-                dataKey="revenue" 
-                stroke="hsl(var(--primary))" 
-                strokeWidth={3}
-                dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'hsl(var(--primary))', strokeWidth: 2 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="expenses" 
-                stroke="hsl(var(--secondary))" 
-                strokeWidth={3}
-                dot={{ fill: 'hsl(var(--secondary))', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'hsl(var(--secondary))', strokeWidth: 2 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="profit" 
-                stroke="hsl(var(--success))" 
-                strokeWidth={3}
-                dot={{ fill: 'hsl(var(--success))', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'hsl(var(--success))', strokeWidth: 2 }}
-              />
+              <Line type="monotone" dataKey="omset" name="Omset" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="grossMargin" name="Gross Margin" stroke="hsl(var(--info))" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="labaBersih" name="Laba Bersih" stroke="hsl(var(--success))" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="pengeluaran" name="Pengeluaran" stroke="hsl(var(--secondary))" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="kerugian" name="Kerugian" stroke="hsl(var(--warning))" strokeDasharray="5 5" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
