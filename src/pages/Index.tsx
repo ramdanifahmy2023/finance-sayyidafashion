@@ -1,39 +1,44 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/components/LoginPage';
-import { Dashboard } from '@/components/Dashboard';
-import { SalesManagement } from '@/components/SalesManagement';
-import { ExpenseTracking } from '@/components/ExpenseTracking';
-import { LossesManagement } from '@/components/LossesManagement';
-import { AssetPortfolio } from '@/components/AssetPortfolio';
-import { FinancialReports } from '@/components/FinancialReports';
-import { Settings } from '@/components/Settings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
+const getDefaultTab = (role: string | undefined) => {
+  switch (role) {
+    case 'karyawan':
+      return 'absensi';
+    case 'admin':
+      return 'sales';
+    case 'manager':
+    default:
+      return 'dashboard';
+  }
+};
+
 const Index = () => {
+  const { user, loading, signIn, signOut, role } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const { toast } = useToast();
-  const { user, loading, signIn, signOut } = useAuth();
+
+  useEffect(() => {
+    if (role) {
+      setActiveTab(getDefaultTab(role));
+    }
+  }, [role]);
 
   const handleLogin = async (email: string, password: string) => {
     setAuthLoading(true);
     setAuthError(null);
-
     try {
       const { error } = await signIn(email, password);
-      
-      if (error) {
-        throw error;
-      }
-
-        toast({
-          title: "Selamat datang kembali!",
-          description: "Berhasil masuk ke dashboard Sayyida Fashion.",
-        });
+      if (error) throw error;
+      toast({
+        title: "Selamat datang kembali!",
+        description: "Berhasil masuk ke dashboard.",
+      });
     } catch (err: any) {
       setAuthError(err.message || 'Login failed');
     } finally {
@@ -47,31 +52,10 @@ const Index = () => {
       setActiveTab('dashboard');
       toast({
         title: "Berhasil keluar",
-        description: "Anda telah berhasil keluar dari sistem.",
+        description: "Anda telah berhasil keluar.",
       });
     } catch (error) {
       console.error('Error signing out:', error);
-    }
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'sales':
-        return <SalesManagement />;
-      case 'expenses':
-        return <ExpenseTracking />;
-      case 'losses':
-        return <LossesManagement />;
-      case 'assets':
-        return <AssetPortfolio />;
-      case 'reports':
-        return <FinancialReports />;
-      case 'settings':
-        return <Settings />;
-      default:
-        return <Dashboard />;
     }
   };
 
@@ -98,9 +82,7 @@ const Index = () => {
       activeTab={activeTab}
       onTabChange={setActiveTab}
       onLogout={handleLogout}
-    >
-      {renderTabContent()}
-    </Layout>
+    />
   );
 };
 
