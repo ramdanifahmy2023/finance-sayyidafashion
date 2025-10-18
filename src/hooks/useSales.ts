@@ -12,15 +12,14 @@ export function useSales() {
   const { toast } = useToast();
   const { selectedDate, getMonthRange } = useDateFilter();
 
-  // Data fetching with date filter
   const fetchSales = useCallback(async () => {
-    if (!user) return []; // Tambahkan pengecekan user di sini
+    if (!user) return [];
     try {
       const range = getMonthRange(selectedDate);
       const { data, error } = await supabase
         .from('sales')
         .select('*')
-        .eq('user_id', user.id) // Pastikan user.id digunakan
+        .eq('user_id', user.id)
         .gte('transaction_date', range.startDate)
         .lte('transaction_date', range.endDate)
         .order('transaction_date', { ascending: false })
@@ -32,7 +31,7 @@ export function useSales() {
       console.error('Error fetching sales:', error);
       return [];
     }
-  }, [user, selectedDate, getMonthRange]); // dependensi disesuaikan
+  }, [user, selectedDate, getMonthRange]);
 
   const loadSales = useCallback(async () => {
     setLoading(true);
@@ -53,7 +52,6 @@ export function useSales() {
 
   const deleteSale = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus penjualan ini?')) return;
-
     try {
       const { error } = await supabase
         .from('sales')
@@ -61,13 +59,11 @@ export function useSales() {
         .eq('id', id);
 
       if (error) throw error;
-
       toast({
         title: "Berhasil",
         description: "Penjualan berhasil dihapus"
       });
-      
-      await loadSales();
+      // Data akan refresh otomatis via real-time
     } catch (error: any) {
       console.error('Error deleting sale:', error);
       toast({
@@ -77,33 +73,35 @@ export function useSales() {
       });
     }
   };
-  
+
   useEffect(() => {
     if (user) {
       loadSales();
     }
-  }, [user, loadSales]); // Cukup loadSales karena sudah mencakup dependensi lain
+  }, [user, loadSales]);
 
-  // Real-time updates using specified pattern
+  // Real-time updates
   useEffect(() => {
     if (!user) return;
 
-    const subscription = supabase
+    // Ganti nama variabel 'subscription' menjadi 'channel' agar konsisten
+    const channel = supabase
       .channel('sales-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'sales' },
+        { event: '*', schema: 'public', table: 'sales', filter: `user_id=eq.${user.id}` },
         (payload) => {
-          console.log('Change received!', payload);
-          // Refresh sales data on any change
+          console.log('Perubahan data penjualan terdeteksi!', payload);
           loadSales();
         }
       )
       .subscribe();
 
+    // **PERBAIKAN UTAMA DI SINI**
+    // Gunakan supabase.removeChannel untuk membersihkan koneksi
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [user, loadSales]); // Tambahkan loadSales sebagai dependensi
+  }, [user, loadSales]);
 
   return {
     sales,
