@@ -34,6 +34,10 @@ export function useSales() {
   }, [user, selectedDate, getMonthRange]);
 
   const loadSales = useCallback(async () => {
+    if (!user) {
+        setLoading(false);
+        return;
+    }
     setLoading(true);
     try {
       const data = await fetchSales();
@@ -45,10 +49,11 @@ export function useSales() {
         description: "Gagal memuat data penjualan",
         variant: "destructive"
       });
+      setSales([]);
     } finally {
       setLoading(false);
     }
-  }, [fetchSales, toast]);
+  }, [fetchSales, toast, user]);
 
   const deleteSale = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus penjualan ini?')) return;
@@ -76,6 +81,8 @@ export function useSales() {
   useEffect(() => {
     if (user) {
       loadSales();
+    } else {
+        setLoading(false);
     }
   }, [user, loadSales]);
 
