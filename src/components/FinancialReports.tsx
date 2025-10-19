@@ -1,10 +1,15 @@
+// src/components/FinancialReports.tsx
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinancialReport } from '@/hooks/useFinancialReport';
 import { useDateFilter } from '@/contexts/DateFilterContext';
 import { MonthYearSelector } from './ui/month-year-selector';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/currencyFormatter';
+import { exportFinancialReportToPDF } from '@/utils/reportPdfExport';
+import { useToast } from '@/hooks/use-toast'; // Impor hook untuk notifikasi
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, Sector } from 'recharts';
-import { TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, HandCoins, Goal, Scale, Receipt, ShieldX, Wallet, Coins } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, HandCoins, Goal, Scale, Receipt, ShieldX, Wallet, Coins, FileDown } from 'lucide-react';
 import { useState } from 'react';
 
 // Card untuk menampilkan metrik individual
@@ -89,9 +94,44 @@ const ProfitCompositionPieChart = ({ data }: { data: any }) => {
 
 
 export function FinancialReports() {
-  const { reportData, monthlyTrend, loading } = useFinancialReport();
+  const { reportData, monthlyTrend, detailedSales, detailedExpenses, detailedLosses, loading } = useFinancialReport();
   const { selectedDate, setSelectedDate, formatDisplayMonth } = useDateFilter();
+  const { toast } = useToast();
 
+  const handleExportPDF = () => {
+    console.log("Tombol Ekspor PDF diklik.");
+    console.log("Data Laporan:", reportData);
+    console.log("Data Penjualan:", detailedSales);
+    console.log("Data Pengeluaran:", detailedExpenses);
+    console.log("Data Kerugian:", detailedLosses);
+
+    if (reportData && detailedSales && detailedExpenses && detailedLosses) {
+      try {
+        console.log("Mencoba membuat PDF...");
+        exportFinancialReportToPDF(reportData, detailedSales, detailedExpenses, detailedLosses, selectedDate);
+        toast({
+          title: "Berhasil",
+          description: "Laporan PDF sedang diunduh.",
+        });
+        console.log("Fungsi pembuatan PDF berhasil dipanggil.");
+      } catch (error) {
+        console.error("Error saat ekspor PDF:", error);
+        toast({
+          title: "Error",
+          description: "Gagal membuat laporan PDF. Silakan cek konsol untuk detail.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      console.warn("Ekspor PDF dibatalkan: Data tidak lengkap.");
+      toast({
+        title: "Data Tidak Lengkap",
+        description: "Tidak dapat mengekspor PDF karena data laporan belum lengkap.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   if (loading) {
     return <div className="flex items-center justify-center py-12">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -107,7 +147,13 @@ export function FinancialReports() {
             Ringkasan performa finansial untuk periode {formatDisplayMonth(selectedDate)}
           </p>
         </div>
-        <MonthYearSelector selectedDate={selectedDate} onDateChange={setSelectedDate} className="w-52" />
+        <div className="flex items-center gap-2">
+            <MonthYearSelector selectedDate={selectedDate} onDateChange={setSelectedDate} className="w-52" />
+            <Button onClick={handleExportPDF} disabled={!reportData}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Ekspor PDF
+            </Button>
+        </div>
       </div>
 
       {!reportData ? (
