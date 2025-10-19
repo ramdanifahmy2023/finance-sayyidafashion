@@ -1,15 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, Sparkles } from 'lucide-react';
 import { formatProductType } from '@/utils/salesFormatters';
+
 interface TopProduct {
   name: string;
   sales: number;
   revenue: number;
 }
+
 interface DashboardInsightsProps {
   topProducts: TopProduct[];
   grossMarginPercentage: string;
 }
+
 export function DashboardInsights({
   topProducts,
   grossMarginPercentage
@@ -22,6 +25,7 @@ export function DashboardInsights({
       maximumFractionDigits: 0
     }).format(amount);
   };
+
   return <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Top Selling Products */}
       <Card className="bg-gradient-card border-border shadow-soft">
