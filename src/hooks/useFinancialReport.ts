@@ -1,8 +1,13 @@
+// src/hooks/useFinancialReport.ts
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useDateFilter } from '@/contexts/DateFilterContext';
 import { toast } from '@/hooks/use-toast';
+import { Sale } from '@/types/sales';
+import { Expense } from '@/types/expense';
+import { Loss } from '@/types/loss';
 
 export interface ReportData {
   omset: number;
@@ -24,6 +29,9 @@ export interface MonthlyTrend {
 export function useFinancialReport() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [monthlyTrend, setMonthlyTrend] = useState<MonthlyTrend[]>([]);
+  const [detailedSales, setDetailedSales] = useState<Sale[]>([]);
+  const [detailedExpenses, setDetailedExpenses] = useState<Expense[]>([]);
+  const [detailedLosses, setDetailedLosses] = useState<Loss[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { selectedDate, getMonthRange } = useDateFilter();
@@ -35,7 +43,13 @@ export function useFinancialReport() {
     try {
       const { startDate, endDate } = getMonthRange(selectedDate);
       
-      const [aggregatesResult, trendResult] = await Promise.all([
+      const [
+        aggregatesResult, 
+        trendResult, 
+        salesResult, 
+        expensesResult, 
+        lossesResult
+      ] = await Promise.all([
         supabase.rpc('get_report_aggregates', {
           user_id_param: user.id,
           start_date_param: startDate,
@@ -44,15 +58,20 @@ export function useFinancialReport() {
         supabase.rpc('get_monthly_trend_data', {
           user_id_param: user.id,
           end_date_param: endDate
-        })
+        }),
+        supabase.from('sales').select('*').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
+        supabase.from('expenses').select('*').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
+        supabase.from('losses').select('*').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate)
       ]);
       
       if (aggregatesResult.error) throw aggregatesResult.error;
       if (trendResult.error) throw trendResult.error;
+      if (salesResult.error) throw salesResult.error;
+      if (expensesResult.error) throw expensesResult.error;
+      if (lossesResult.error) throw lossesResult.error;
 
       const aggregates = aggregatesResult.data[0];
       
-      // Calculate metrics based on user's formula
       const omset = aggregates.total_revenue;
       const modal = aggregates.total_cogs;
       const pengeluaran = aggregates.total_expenses;
@@ -74,7 +93,10 @@ export function useFinancialReport() {
         profitBersih,
       });
 
-      // Process trend data
+      setDetailedSales(salesResult.data || []);
+      setDetailedExpenses(expensesResult.data || []);
+      setDetailedLosses(lossesResult.data || []);
+
       const trend = trendResult.data.map(d => {
         const gm = d.revenue - d.capital - d.marketplace_fees;
         const profit = gm - d.expenses - d.losses;
@@ -116,5 +138,5 @@ export function useFinancialReport() {
     return () => { supabase.removeChannel(channel) };
   }, [user, loadReportData]);
 
-  return { reportData, monthlyTrend, loading };
+  return { reportData, monthlyTrend, detailedSales, detailedExpenses, detailedLosses, loading };
 }
