@@ -1,3 +1,5 @@
+// src/hooks/useChartData.ts
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,26 +53,39 @@ export function useChartData() {
     try {
       const { startDate, endDate } = getMonthRange(selectedDate);
 
-      const [ salesCategoryData, dailySalesData, monthlyTrendResult, expenseBreakdownData ] = await Promise.all([
+      const [ 
+        salesCategoryData, 
+        dailySalesData, 
+        monthlyTrendResult, 
+        expenseBreakdownData,
+        currentMonthMetricsResult // Mengambil data akurat untuk bulan ini
+      ] = await Promise.all([
         supabase.from('sales').select('product_type, selling_price').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
         supabase.from('sales').select('transaction_date, selling_price').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
         supabase.rpc('get_monthly_trend_data', { user_id_param: user.id, end_date_param: endDate }),
         supabase.from('expenses').select('category, amount').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
+        // Menggunakan RPC yang sama dengan metrik utama untuk konsistensi
+        supabase.rpc('get_dashboard_metrics', {
+          user_id_param: user.id,
+          start_date: startDate,
+          end_date: endDate
+        })
       ]);
 
       if (salesCategoryData.error) throw salesCategoryData.error;
       if (dailySalesData.error) throw dailySalesData.error;
       if (monthlyTrendResult.error) throw monthlyTrendResult.error;
       if (expenseBreakdownData.error) throw expenseBreakdownData.error;
+      if (currentMonthMetricsResult.error) throw currentMonthMetricsResult.error;
 
-      // 1. Process Sales by Category
+      // 1. Proses Penjualan per Kategori (Tidak berubah)
       const categoryTotals = (salesCategoryData.data || []).reduce((acc: Record<string, number>, sale) => {
         acc[sale.product_type] = (acc[sale.product_type] || 0) + Number(sale.selling_price);
         return acc;
       }, {});
       setSalesByCategory(Object.entries(categoryTotals).map(([name, value], index) => ({ name, value, fill: categoryColors[index % categoryColors.length] })).sort((a, b) => b.value - a.value));
 
-      // 2. Process Daily Sales
+      // 2. Proses Penjualan Harian (Tidak berubah)
       const dailyTotals = (dailySalesData.data || []).reduce((acc: Record<string, number>, sale) => {
         acc[sale.transaction_date] = (acc[sale.transaction_date] || 0) + Number(sale.selling_price);
         return acc;
@@ -85,8 +100,8 @@ export function useChartData() {
       }
       setDailySales(dailySalesChartData);
       
-      // 3. Process Monthly Trend
-      const monthlyTrendChartData = (monthlyTrendResult.data || []).map(d => {
+      // 3. Proses Tren Bulanan (Dengan perbaikan)
+      const historicalTrendData = (monthlyTrendResult.data || []).map(d => {
           const grossMargin = d.revenue - d.capital - d.marketplace_fees;
           const netProfit = grossMargin - d.expenses - d.losses;
           return {
@@ -98,9 +113,29 @@ export function useChartData() {
               labaBersih: netProfit,
           }
       });
-      setMonthlyTrend(monthlyTrendChartData);
+      
+      const currentMonthMetrics = currentMonthMetricsResult.data?.[0];
 
-      // 4. Process Expense Breakdown
+      if (currentMonthMetrics && historicalTrendData.length > 0) {
+        const currentMonthData = {
+          month: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 2).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }),
+          omset: currentMonthMetrics.total_revenue,
+          pengeluaran: currentMonthMetrics.total_expenses,
+          kerugian: currentMonthMetrics.total_losses,
+          grossMargin: currentMonthMetrics.gross_margin,
+          labaBersih: currentMonthMetrics.net_profit,
+        };
+        
+        // Ganti data bulan terakhir dari hasil tren dengan data akurat dari metrik utama
+        const finalTrendData = historicalTrendData.slice(0, -1);
+        finalTrendData.push(currentMonthData);
+        setMonthlyTrend(finalTrendData);
+
+      } else {
+         setMonthlyTrend(historicalTrendData);
+      }
+
+      // 4. Proses Breakdown Pengeluaran (Tidak berubah)
       const expenseCategoryTotals = (expenseBreakdownData.data || []).reduce((acc: Record<string, number>, expense) => {
         acc[expense.category] = (acc[expense.category] || 0) + Number(expense.amount);
         return acc;
