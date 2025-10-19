@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingDown, DollarSign, ShoppingCart, CreditCard, Target, ArrowUp, ArrowDown } from 'lucide-react';
 import { formatCurrency } from '@/utils/currencyFormatter';
-
 interface MetricsData {
   totalRevenue: number;
   totalCapital: number;
@@ -16,32 +15,32 @@ interface MetricsData {
     profit: number;
   };
 }
-
 interface DashboardMetricsProps {
   metrics: MetricsData | null;
   loading: boolean;
 }
-
-const GrowthIndicator = ({ percentage }: { percentage: number }) => {
+const GrowthIndicator = ({
+  percentage
+}: {
+  percentage: number;
+}) => {
   const isPositive = percentage >= 0;
   // Untuk pengeluaran, pertumbuhan positif (kenaikan) adalah hal yang kurang baik
   const colorClass = isPositive ? 'text-success' : 'text-destructive';
-
-  return (
-    <div className={`flex items-center gap-1 ${colorClass}`}>
+  return <div className={`flex items-center gap-1 ${colorClass}`}>
       {isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       <span className="text-xs font-medium">{Math.abs(percentage).toFixed(1)}% vs bulan lalu</span>
-    </div>
-  );
+    </div>;
 };
-
-
-export function DashboardMetrics({ metrics, loading }: DashboardMetricsProps) {
+export function DashboardMetrics({
+  metrics,
+  loading
+}: DashboardMetricsProps) {
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="bg-gradient-card border-border shadow-soft">
+    return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {Array.from({
+        length: 5
+      }).map((_, i) => <Card key={i} className="bg-gradient-card border-border shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="h-4 bg-muted rounded w-1/2 animate-pulse" />
             </CardHeader>
@@ -49,26 +48,16 @@ export function DashboardMetrics({ metrics, loading }: DashboardMetricsProps) {
               <div className="h-6 bg-muted rounded w-3/4 animate-pulse mb-2" />
               <div className="h-3 bg-muted rounded w-1/3 animate-pulse" />
             </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+          </Card>)}
+      </div>;
   }
-
   if (!metrics) {
-    return (
-      <div className="text-center py-12">
+    return <div className="text-center py-12">
         <p className="text-muted-foreground">Tidak ada data metrik tersedia untuk periode ini.</p>
-      </div>
-    );
+      </div>;
   }
-
-  const grossMarginPercentage = metrics.totalRevenue > 0 
-    ? (metrics.grossMargin / metrics.totalRevenue * 100).toFixed(1) 
-    : '0.0';
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+  const grossMarginPercentage = metrics.totalRevenue > 0 ? (metrics.grossMargin / metrics.totalRevenue * 100).toFixed(1) : '0.0';
+  return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
       {/* Total Omset */}
       <Card className="bg-gradient-card border-border shadow-soft hover:shadow-medium transition-smooth">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -101,7 +90,7 @@ export function DashboardMetrics({ metrics, loading }: DashboardMetricsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">{formatCurrency(metrics.grossMargin)}</div>
-          <Badge variant="outline" className="text-xs border-info text-info-foreground">
+          <Badge variant="outline" className="text-xs border-info text-info-foreground bg-blue-400">
             {grossMarginPercentage}% dari Omset
           </Badge>
         </CardContent>
@@ -130,6 +119,5 @@ export function DashboardMetrics({ metrics, loading }: DashboardMetricsProps) {
           <p className="text-xs text-muted-foreground mt-1">Stok rusak, hilang, dll.</p>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }

@@ -8,32 +8,36 @@ import { DashboardActivity } from '@/components/dashboard/DashboardActivity';
 import { Card, CardContent } from '@/components/ui/card';
 import { Info } from 'lucide-react';
 import { useEffect } from 'react';
-
 export function Dashboard() {
-  const { metrics, loading, loadDashboard } = useDashboard();
-  const { selectedDate, formatDisplayMonth, isCurrentMonth } = useDateFilter();
+  const {
+    metrics,
+    loading,
+    loadDashboard
+  } = useDashboard();
+  const {
+    selectedDate,
+    formatDisplayMonth,
+    isCurrentMonth
+  } = useDateFilter();
 
   // useEffect ini sekarang hanya memastikan data dimuat ulang saat komponen pertama kali dibuka
   // atau saat pengguna login/logout. Perubahan tanggal sudah ditangani di dalam hook.
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
-  
   if (loading) {
     return <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>;
   }
-  
   const grossMarginPercentage = metrics?.totalRevenue && metrics.totalRevenue > 0 ? (metrics.grossMargin / metrics.totalRevenue * 100).toFixed(1) : '0.0';
   const topProducts = metrics?.topProducts || [];
-
   return <div className="space-y-6">
       <DashboardHeader />
       
       {/* Period Indicator */}
       <Card className="bg-info-light border-info">
-        <CardContent className="p-4">
+        <CardContent className="p-4 bg-blue-400">
           <div className="flex items-center">
             <Info className="w-5 h-5 text-info-foreground mr-3" />
             <span className="text-info-foreground">
