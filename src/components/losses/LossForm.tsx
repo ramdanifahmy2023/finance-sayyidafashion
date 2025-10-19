@@ -10,14 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
-
-interface Loss {
-  id: string;
-  transaction_date: string;
-  loss_type: string;
-  description: string;
-  amount: number;
-}
+import { Loss } from '@/types/loss';
 
 interface LossFormProps {
   editingLoss: Loss | null;
@@ -60,7 +53,7 @@ export function LossForm({ editingLoss, onSuccess, onCancel }: LossFormProps) {
         transaction_date: formData.transaction_date,
         loss_type: formData.loss_type,
         amount: parseFloat(formData.amount),
-        description: formData.description,
+        description: formData.description || '',
         user_id: user.id
       };
 
@@ -169,7 +162,6 @@ export function LossForm({ editingLoss, onSuccess, onCancel }: LossFormProps) {
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Describe the loss details..."
                 rows={3}
-                required
               />
             </div>
           </div>

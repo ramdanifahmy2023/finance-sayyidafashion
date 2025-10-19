@@ -2,16 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useDateFilter } from '@/contexts/DateFilterContext'; // Import DateFilter
-
-interface Loss {
-  id: string;
-  transaction_date: string;
-  category: string;
-  amount: number;
-  description?: string;
-  created_at: string;
-}
+import { useDateFilter } from '@/contexts/DateFilterContext';
+import { Loss } from '@/types/loss';
 
 export function useLosses() {
   const [losses, setLosses] = useState<Loss[]>([]);

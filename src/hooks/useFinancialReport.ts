@@ -44,38 +44,27 @@ export function useFinancialReport() {
       const { startDate, endDate } = getMonthRange(selectedDate);
       
       const [
-        aggregatesResult, 
-        trendResult, 
         salesResult, 
         expensesResult, 
         lossesResult
       ] = await Promise.all([
-        supabase.rpc('get_report_aggregates', {
-          user_id_param: user.id,
-          start_date_param: startDate,
-          end_date_param: endDate
-        }),
-        supabase.rpc('get_monthly_trend_data', {
-          user_id_param: user.id,
-          end_date_param: endDate
-        }),
         supabase.from('sales').select('*').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
         supabase.from('expenses').select('*').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
         supabase.from('losses').select('*').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate)
       ]);
       
-      if (aggregatesResult.error) throw aggregatesResult.error;
-      if (trendResult.error) throw trendResult.error;
       if (salesResult.error) throw salesResult.error;
       if (expensesResult.error) throw expensesResult.error;
       if (lossesResult.error) throw lossesResult.error;
 
-      const aggregates = aggregatesResult.data[0];
+      const sales = salesResult.data || [];
+      const expenses = expensesResult.data || [];
+      const losses = lossesResult.data || [];
       
-      const omset = aggregates.total_revenue;
-      const modal = aggregates.total_cogs;
-      const pengeluaran = aggregates.total_expenses;
-      const kerugian = aggregates.total_losses;
+      const omset = sales.reduce((sum, s) => sum + Number(s.selling_price), 0);
+      const modal = sales.reduce((sum, s) => sum + Number(s.purchase_price) + Number(s.marketplace_fee || 0), 0);
+      const pengeluaran = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+      const kerugian = losses.reduce((sum, l) => sum + Number(l.amount), 0);
       
       const grossMargin = omset - modal;
       const profitSebelumInfaq = grossMargin - pengeluaran - kerugian;
@@ -93,19 +82,44 @@ export function useFinancialReport() {
         profitBersih,
       });
 
-      setDetailedSales(salesResult.data || []);
-      setDetailedExpenses(expensesResult.data || []);
-      setDetailedLosses(lossesResult.data || []);
+      setDetailedSales(sales);
+      setDetailedExpenses(expenses);
+      setDetailedLosses(losses);
 
-      const trend = trendResult.data.map(d => {
-        const gm = d.revenue - d.capital - d.marketplace_fees;
-        const profit = gm - d.expenses - d.losses;
-        return {
-          month: new Date(`${d.month}-02`).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }),
-          profit: profit,
-          omset: d.revenue
-        };
+      // Calculate 6-month trend from current data
+      const monthlyMap = new Map<string, { omset: number; modal: number; pengeluaran: number; kerugian: number }>();
+      
+      sales.forEach(s => {
+        const month = s.transaction_date.substring(0, 7);
+        const existing = monthlyMap.get(month) || { omset: 0, modal: 0, pengeluaran: 0, kerugian: 0 };
+        existing.omset += Number(s.selling_price);
+        existing.modal += Number(s.purchase_price) + Number(s.marketplace_fee || 0);
+        monthlyMap.set(month, existing);
       });
+      
+      expenses.forEach(e => {
+        const month = e.transaction_date.substring(0, 7);
+        const existing = monthlyMap.get(month) || { omset: 0, modal: 0, pengeluaran: 0, kerugian: 0 };
+        existing.pengeluaran += Number(e.amount);
+        monthlyMap.set(month, existing);
+      });
+      
+      losses.forEach(l => {
+        const month = l.transaction_date.substring(0, 7);
+        const existing = monthlyMap.get(month) || { omset: 0, modal: 0, pengeluaran: 0, kerugian: 0 };
+        existing.kerugian += Number(l.amount);
+        monthlyMap.set(month, existing);
+      });
+      
+      const trend = Array.from(monthlyMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-6)
+        .map(([month, data]) => ({
+          month: new Date(`${month}-02`).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }),
+          profit: data.omset - data.modal - data.pengeluaran - data.kerugian,
+          omset: data.omset
+        }));
+      
       setMonthlyTrend(trend);
 
     } catch (error: any) {

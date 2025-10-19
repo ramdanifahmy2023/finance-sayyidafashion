@@ -56,15 +56,12 @@ export function useChartData() {
       const [ 
         salesCategoryData, 
         dailySalesData, 
-        monthlyTrendResult, 
         expenseBreakdownData,
-        currentMonthMetricsResult // Mengambil data akurat untuk bulan ini
+        currentMonthMetricsResult
       ] = await Promise.all([
         supabase.from('sales').select('product_type, selling_price').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
         supabase.from('sales').select('transaction_date, selling_price').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
-        supabase.rpc('get_monthly_trend_data', { user_id_param: user.id, end_date_param: endDate }),
         supabase.from('expenses').select('category, amount').eq('user_id', user.id).gte('transaction_date', startDate).lte('transaction_date', endDate),
-        // Menggunakan RPC yang sama dengan metrik utama untuk konsistensi
         supabase.rpc('get_dashboard_metrics', {
           user_id_param: user.id,
           start_date: startDate,
@@ -74,7 +71,6 @@ export function useChartData() {
 
       if (salesCategoryData.error) throw salesCategoryData.error;
       if (dailySalesData.error) throw dailySalesData.error;
-      if (monthlyTrendResult.error) throw monthlyTrendResult.error;
       if (expenseBreakdownData.error) throw expenseBreakdownData.error;
       if (currentMonthMetricsResult.error) throw currentMonthMetricsResult.error;
 
@@ -100,23 +96,10 @@ export function useChartData() {
       }
       setDailySales(dailySalesChartData);
       
-      // 3. Proses Tren Bulanan (Dengan perbaikan)
-      const historicalTrendData = (monthlyTrendResult.data || []).map(d => {
-          const grossMargin = d.revenue - d.capital - d.marketplace_fees;
-          const netProfit = grossMargin - d.expenses - d.losses;
-          return {
-              month: new Date(`${d.month}-02`).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }),
-              omset: d.revenue,
-              pengeluaran: d.expenses,
-              kerugian: d.losses,
-              grossMargin: grossMargin,
-              labaBersih: netProfit,
-          }
-      });
-      
+      // 3. Calculate monthly trend for last 6 months
       const currentMonthMetrics = currentMonthMetricsResult.data?.[0];
-
-      if (currentMonthMetrics && historicalTrendData.length > 0) {
+      
+      if (currentMonthMetrics) {
         const currentMonthData = {
           month: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 2).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }),
           omset: currentMonthMetrics.total_revenue,
@@ -126,13 +109,9 @@ export function useChartData() {
           labaBersih: currentMonthMetrics.net_profit,
         };
         
-        // Ganti data bulan terakhir dari hasil tren dengan data akurat dari metrik utama
-        const finalTrendData = historicalTrendData.slice(0, -1);
-        finalTrendData.push(currentMonthData);
-        setMonthlyTrend(finalTrendData);
-
+        setMonthlyTrend([currentMonthData]);
       } else {
-         setMonthlyTrend(historicalTrendData);
+        setMonthlyTrend([]);
       }
 
       // 4. Proses Breakdown Pengeluaran (Tidak berubah)
