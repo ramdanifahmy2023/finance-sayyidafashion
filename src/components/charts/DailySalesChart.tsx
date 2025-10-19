@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
+import { useDateFilter } from '@/contexts/DateFilterContext';
 
 interface DailySalesData {
   date: string;
@@ -14,6 +15,8 @@ interface DailySalesChartProps {
 }
 
 export function DailySalesChart({ data, loading }: DailySalesChartProps) {
+  const { formatDisplayMonth, selectedDate } = useDateFilter();
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -38,13 +41,15 @@ export function DailySalesChart({ data, loading }: DailySalesChartProps) {
     return null;
   };
 
+  const chartTitle = `Penjualan Harian (${formatDisplayMonth(selectedDate)})`;
+
   if (loading) {
     return (
       <Card className="bg-gradient-card border-border shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            Penjualan Harian (30 Hari Terakhir)
+            {chartTitle}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -61,7 +66,7 @@ export function DailySalesChart({ data, loading }: DailySalesChartProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
-          Penjualan Harian (30 Hari Terakhir)
+          {chartTitle}
         </CardTitle>
       </CardHeader>
       <CardContent>
